@@ -1,0 +1,434 @@
+[
+  {
+    "uid": "a60a5e2df5df4c2ebcf2a802b50910bd",
+    "date": "2025-01-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1200.0,
+    "kind": "income"
+  },
+  {
+    "uid": "538a908294434740b154531f6814b310",
+    "date": "2025-01-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "b36a8b06c08648378cbe27941ba7ab4e",
+    "date": "2025-01-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 72.85,
+    "kind": "expense"
+  },
+  {
+    "uid": "c865912c76b74889883770df11e47727",
+    "date": "2025-01-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "19db8a1d7857453f8db0ae03f96046f7",
+    "date": "2025-02-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1156.96,
+    "kind": "income"
+  },
+  {
+    "uid": "595c0de96b2940deb7e76aed84f58df7",
+    "date": "2025-02-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "a9f0c3b1de3d4508ab8b2ef9844029ef",
+    "date": "2025-02-07",
+    "category": "komunainiai",
+    "description": "Irasas be aprasymo",
+    "amount": 77.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "1f9bf0c524bb4e81a44d74e8c494c446",
+    "date": "2025-02-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "89da3b2b684b4ecb8ce1960d0ebc4cb6",
+    "date": "2025-02-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "e2578449cf4648c7a501fe5a8c4209f5",
+    "date": "2025-03-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1050.0,
+    "kind": "income"
+  },
+  {
+    "uid": "ad3b4e6e7d394892914cf00af703509f",
+    "date": "2025-03-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "5b2841288b7c46789c14212899631eed",
+    "date": "2025-03-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 137.72,
+    "kind": "expense"
+  },
+  {
+    "uid": "622751e8292644c78eba7ae3b864001a",
+    "date": "2025-03-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "c59c08c90c9f4347b278c6b2a0852f1b",
+    "date": "2025-03-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "b23f5567447a40d5af59ac97cb31e3aa",
+    "date": "2025-04-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1057.71,
+    "kind": "income"
+  },
+  {
+    "uid": "2fa0e5f8be1b4e8da67dcd5fb52dee62",
+    "date": "2025-04-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "5fb6973ebb2a466b98bb9870daa2448e",
+    "date": "2025-04-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 139.06,
+    "kind": "expense"
+  },
+  {
+    "uid": "e278796cebb44b81ae93370ab3bcb28f",
+    "date": "2025-04-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "b1889c09b47a4eada2d3770c8520a43a",
+    "date": "2025-04-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "fa374a31bc2c430cb0edeae7584925dc",
+    "date": "2025-05-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1137.6,
+    "kind": "income"
+  },
+  {
+    "uid": "542bb4b6637d47d48061dfc7a0ca6765",
+    "date": "2025-05-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "ac5cb1781338436fb9fff43e0eeac073",
+    "date": "2025-05-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 157.45,
+    "kind": "expense"
+  },
+  {
+    "uid": "b08b9cbb99ae4ed2b012fc60350da03e",
+    "date": "2025-05-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "652fe4edd56146659579ce2d9ad3c232",
+    "date": "2025-05-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "48ef9ce357e345eb81f8ec4563498ba0",
+    "date": "2025-06-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1031.79,
+    "kind": "income"
+  },
+  {
+    "uid": "3633d89543a94eeeb417b4aa2d4a308a",
+    "date": "2025-06-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "bc089531169b401a8a94eddefda1358e",
+    "date": "2025-06-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 180.3,
+    "kind": "expense"
+  },
+  {
+    "uid": "033447be7d59416cb185e74a54b0b837",
+    "date": "2025-06-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "eaa895bf360f4d1abd9c2f78410d8296",
+    "date": "2025-06-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "972a7d24ce014f50a2d92adee7a8174c",
+    "date": "2025-07-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1242.3,
+    "kind": "income"
+  },
+  {
+    "uid": "f22ba14b03bf4cffb3d9352c2868a74f",
+    "date": "2025-07-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "bd8bc5dbb1894f369a5d1de492fdeb91",
+    "date": "2025-07-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 149.7,
+    "kind": "expense"
+  },
+  {
+    "uid": "908c3490495c4956a732d6c58ae07513",
+    "date": "2025-07-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "639222fba09d492191755380a3c4b6c5",
+    "date": "2025-07-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "1ddc5aefd2c44c11ac25d73dfb5d5426",
+    "date": "2025-08-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1249.54,
+    "kind": "income"
+  },
+  {
+    "uid": "a38ff38c95554b3791f9033847feaf88",
+    "date": "2025-08-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "afe2333c8ee2432cb8a9bf9a9ce116f7",
+    "date": "2025-08-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 110.02,
+    "kind": "expense"
+  },
+  {
+    "uid": "54450f6c263048ec85ea8e7f62d9ebd7",
+    "date": "2025-08-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "a00439ecdf9a4406a81d2259b4edb24e",
+    "date": "2025-08-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "9e043d9746a84138860a8d4956c6417a",
+    "date": "2025-09-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1260.25,
+    "kind": "income"
+  },
+  {
+    "uid": "6f13db5e24b44a7ea9fde1fd2e9ad86b",
+    "date": "2025-09-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "1a530b59107249acb98576d7a3ef2f94",
+    "date": "2025-09-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 84.14,
+    "kind": "expense"
+  },
+  {
+    "uid": "29377799c0094c4fa617b28f2428b669",
+    "date": "2025-09-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "4b9bcddab48144cbbfce3964529c0c8d",
+    "date": "2025-09-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "4070248eb18e43f6a9d402513462a5ea",
+    "date": "2025-10-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1663.02,
+    "kind": "income"
+  },
+  {
+    "uid": "762da33764174f8dba6383aed40ac5a1",
+    "date": "2025-10-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "ace60249e66042dea6f68eddcf3e49eb",
+    "date": "2025-10-07",
+    "category": "komunaliniai",
+    "description": "nežinoma",
+    "amount": 150.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "2d8a2c4e55d34d3cbcb40233fdcc4017",
+    "date": "2025-10-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "b4d7e72744f24836a69b1648df99d5a9",
+    "date": "2025-10-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  },
+  {
+    "uid": "8d901f05328845248d9f56cdab908b17",
+    "date": "2025-11-07",
+    "category": "alga",
+    "description": "Pajamu irasas",
+    "amount": 1311.0,
+    "kind": "income"
+  },
+  {
+    "uid": "7ae6f41d12d045d2996bb02af01abfee",
+    "date": "2025-11-20",
+    "category": "nuoma",
+    "description": "Irasas be aprasymo",
+    "amount": 450.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "94edd623c88741f684b8bb0f3e099e72",
+    "date": "2025-11-07",
+    "category": "komunaliniai",
+    "description": "Irasas be aprasymo",
+    "amount": 81.4,
+    "kind": "expense"
+  },
+  {
+    "uid": "c1b64797819940d88217747c98fda6f9",
+    "date": "2025-11-07",
+    "category": "maistas",
+    "description": "Irasas be aprasymo",
+    "amount": 300.0,
+    "kind": "expense"
+  },
+  {
+    "uid": "d30e0f596e4942b4a405a0818f9b9184",
+    "date": "2025-11-07",
+    "category": "papildomi mokesčiai",
+    "description": "Irasas be aprasymo",
+    "amount": 44.87,
+    "kind": "expense"
+  }
+]
