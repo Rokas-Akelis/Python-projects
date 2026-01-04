@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import os
 import json
+import numpy as np
 
 from models import get_session, Product, Movement, WcProductRaw
 from movement_utils import record_movement
@@ -60,8 +61,16 @@ def load_wc_raw_df(session):
     def is_scalar_safe(val):
         if isinstance(val, (str, int, float, bool)) or val is None:
             return True
+        if isinstance(val, (list, tuple, dict)):
+            return False
+        if isinstance(val, np.ndarray):
+            return False
         try:
-            return pd.isna(val)
+            res = pd.isna(val)
+            # pd.isna(array) grąžina masyvą; laikom tai ne-scalar
+            if isinstance(res, (list, tuple, np.ndarray)):
+                return False
+            return bool(res)
         except Exception:
             return False
 
