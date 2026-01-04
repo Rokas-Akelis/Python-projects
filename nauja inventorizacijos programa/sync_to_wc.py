@@ -40,7 +40,7 @@ def sync_prices_and_stock_to_wc():
 
             wc_type = current.get("type") if isinstance(current, dict) else None
             if wc_type and wc_type not in {"simple"}:
-                print(f"WC ID={p.wc_id}: type={wc_type} nepalaikomas automatiniam kainos/kiekio atnaujinimui. Praleidžiama.")
+                print(f"WC ID={p.wc_id}: type={wc_type} nepalaikomas (variacija/variable). Šiuo metu neatnaujinama.")
                 continue
 
             current_price = None
@@ -56,10 +56,6 @@ def sync_prices_and_stock_to_wc():
                     current_qty = int(current_qty) if current_qty is not None else None
                 except Exception:
                     current_qty = None
-
-            if current_price == p.price and current_qty == p.quantity:
-                print(f"WC ID={p.wc_id}: nėra pokyčių (price={p.price}, qty={p.quantity}).")
-                continue
 
             woo.update_price_and_stock(
                 wc_id=p.wc_id,
