@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 import os
+import json
 
 from models import get_session, Product, Movement, WcProductRaw
 from movement_utils import record_movement
@@ -54,7 +55,19 @@ def load_wc_raw_df(session):
         payload = payload.copy()
         payload["wc_id"] = r.wc_id
         data.append(payload)
-    return pd.json_normalize(data)
+    df = pd.json_normalize(data)
+
+    def is_scalar(val):
+        return isinstance(val, (str, int, float, bool)) or val is None or pd.isna(val)
+
+    for col in df.columns:
+        if df[col].apply(lambda v: not is_scalar(v)).any():
+            df[col] = df[col].apply(
+                lambda v: None
+                if pd.isna(v)
+                else json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else str(v)
+            )
+    return df
 
 
 def to_int(val, default=None):
