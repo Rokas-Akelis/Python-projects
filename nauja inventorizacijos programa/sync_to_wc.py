@@ -4,31 +4,66 @@ from models import get_session, Product, Movement, WcProductRaw
 from woo_client import WooClient
 from backup_utils import create_backup
 
-DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
 WC_BASE_URL = os.getenv("WC_BASE_URL")
 WC_CK = os.getenv("WC_CK")
 WC_CS = os.getenv("WC_CS")
+WC_SYNC_IDS_RAW = os.getenv("WC_SYNC_IDS", "").strip()
 
 
-def sync_prices_and_stock_to_wc():
+def _normalize_wc_sync_ids(value) -> set[int]:
+    if value is None:
+        return set()
+    if isinstance(value, (set, list, tuple)):
+        items = value
+    else:
+        raw = str(value).strip()
+        if not raw:
+            return set()
+        items = raw.replace(";", ",").split(",")
+    ids = set()
+    for item in items:
+        if isinstance(item, int):
+            ids.add(int(item))
+            continue
+        part = str(item).strip()
+        if not part:
+            continue
+        try:
+            ids.add(int(part))
+        except ValueError:
+            continue
+    return ids
+
+
+DEFAULT_WC_SYNC_IDS = _normalize_wc_sync_ids(WC_SYNC_IDS_RAW)
+
+
+def _wc_id_allowed(wc_id, allowed_ids: set[int]) -> bool:
+    if not allowed_ids:
+        return True
+    try:
+        return int(wc_id) in allowed_ids
+    except Exception:
+        return False
+
+
+def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
     session = get_session()
 
-    woo = None
-    if DEMO_MODE:
-        print("Demo mode: WooCommerce API calls are skipped.")
-    else:
-        if not (WC_BASE_URL and WC_CK and WC_CS):
-            raise RuntimeError("WC_BASE_URL/WC_CK/WC_CS not set")
-        woo = WooClient(base_url=WC_BASE_URL, consumer_key=WC_CK, consumer_secret=WC_CS)
+    if not (WC_BASE_URL and WC_CK and WC_CS):
+        raise RuntimeError("WC_BASE_URL/WC_CK/WC_CS not set")
+    woo = WooClient(base_url=WC_BASE_URL, consumer_key=WC_CK, consumer_secret=WC_CS)
+
+    allowed_ids = DEFAULT_WC_SYNC_IDS if allowed_wc_ids is None else _normalize_wc_sync_ids(allowed_wc_ids)
+    if allowed_ids:
+        print(f"Filtras aktyvus (WC_SYNC_IDS): {sorted(allowed_ids)}")
 
     products = session.query(Product).filter(Product.active == True).all()
 
     for p in products:
         if not p.wc_id:
             continue
-
-        if DEMO_MODE:
-            print(f"Demo mode: would sync WC_ID={p.wc_id} ({p.name})")
+        if not _wc_id_allowed(p.wc_id, allowed_ids):
             continue
 
         try:
@@ -81,8 +116,6 @@ def pull_products_from_wc():
     - Issaugo pilna raw JSON i wc_raw_products
     - Kiekiu pokycius zymi Movement
     """
-    if DEMO_MODE:
-        raise RuntimeError("Demo mode: WC pull is disabled. Isjunk DEMO_MODE.")
     if not (WC_BASE_URL and WC_CK and WC_CS):
         raise RuntimeError("WC_BASE_URL/WC_CK/WC_CS not set")
 

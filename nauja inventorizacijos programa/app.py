@@ -7,7 +7,7 @@ import numpy as np
 
 from models import get_session, Product, Movement, WcProductRaw
 from movement_utils import record_movement
-from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc, DEMO_MODE  # naudosim jau tureta funkcija.
+from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc  # naudosim jau tureta funkcija.
 from backup_utils import create_backup, DB_PATH
 
 
@@ -234,22 +234,22 @@ def main():
 
     st.subheader("Sinchronizacija su WooCommerce")
 
-    if DEMO_MODE:
-        st.info("Demo rezimas: WooCommerce API kvietimai praleidziami; log'uose matysi tik 'would sync'.")
-
     st.write(
         "Sis mygtukas paima kainas ir kiekius is DB ir issiuncia i WooCommerce per API "
         "(tik toms prekems, kurios turi WC_ID)."
     )
+    sync_ids_text = st.text_input(
+        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
+        value=os.getenv("WC_SYNC_IDS", ""),
+        key="sync_wc_ids",
+    )
     confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
     if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
-        if DEMO_MODE:
-            st.info("Demo rezimas: API nekviestas.")
-        elif not confirm_push:
+        if not confirm_push:
             st.warning("Patvirtink siuntima checkbox'u.")
         else:
             try:
-                sync_prices_and_stock_to_wc()  # viduje pati susikurs WooClient ir sesija.
+                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)  # viduje pati susikurs WooClient ir sesija.
                 st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
             except Exception as e:
                 st.error(f"Sinchronizacijos klaida: {e}")
@@ -260,9 +260,7 @@ def main():
     st.write("Nuskaito produktus is WC API ir atnaujina DB (prideda naujus, atnaujina kainas/kiekius).")
     confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc")
     if st.button("Importuoti is WC"):
-        if DEMO_MODE:
-            st.warning("Demo rezimas: WC importas isjungtas. Isjunk DEMO_MODE.")
-        elif not confirm_pull:
+        if not confirm_pull:
             st.warning("Patvirtink importa checkbox'u.")
         else:
             try:
