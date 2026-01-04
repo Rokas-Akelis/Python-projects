@@ -13,8 +13,8 @@ class WooClient:
 
     def _auth_params(self):
         return {
-            "consumer_key": self.ck,
-            "consumer_secret": self.cs,
+            "ck_0cb3e88fd23aeff0d7904e1c96b9d8b09127dcf1": self.ck,
+            "cs_f51a500ae54bf5ffd62a50d50c70ee86cb38fa44": self.cs,
         }
 
     def update_product(self, wc_id: int, data: dict):

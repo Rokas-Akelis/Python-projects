@@ -7,9 +7,9 @@ from woo_client import WooClient
 from backup_utils import create_backup
 
 DEMO_MODE = os.getenv("DEMO_MODE", "0") == "1"
-WC_BASE_URL = os.getenv("WC_BASE_URL", "https://TAVO-PARDUOTUVE.lt/")
-WC_CK = os.getenv("WC_CONSUMER_KEY") or os.getenv("WC_CK")
-WC_CS = os.getenv("WC_CONSUMER_SECRET") or os.getenv("WC_CS")
+WC_BASE_URL = os.getenv("WC_BASE_URL", "https://powermotors.lt/")
+WC_CK = os.getenv("ck_f62f957a1df465e12c0c85c166bf0d7109229500") or os.getenv("WC_CK")
+WC_CS = os.getenv("cs_99e4c460637315c1c8d11cc9e509ff442a449987") or os.getenv("WC_CS")
 
 
 def sync_prices_and_stock_to_wc():
