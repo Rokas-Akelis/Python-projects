@@ -57,14 +57,19 @@ def load_wc_raw_df(session):
         data.append(payload)
     df = pd.json_normalize(data)
 
-    def is_scalar(val):
-        return isinstance(val, (str, int, float, bool)) or val is None or pd.isna(val)
+    def is_scalar_safe(val):
+        if isinstance(val, (str, int, float, bool)) or val is None:
+            return True
+        try:
+            return pd.isna(val)
+        except Exception:
+            return False
 
     for col in df.columns:
-        if df[col].apply(lambda v: not is_scalar(v)).any():
+        if df[col].apply(lambda v: not is_scalar_safe(v)).any():
             df[col] = df[col].apply(
                 lambda v: None
-                if pd.isna(v)
+                if is_scalar_safe(v) and pd.isna(v)
                 else json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else str(v)
             )
     return df
