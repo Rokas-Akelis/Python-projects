@@ -39,6 +39,10 @@ def sync_prices_and_stock_to_wc():
             )
             print(f"OK. Atnaujinta WC preke ID={p.wc_id} ({p.name})")
         except Exception as e:
+            # jei 404 - WC pusėje nėra tokio ID, tiesiog praleidžiam nekeičiant DB
+            if hasattr(e, "response") and getattr(e.response, "status_code", None) == 404:
+                print(f"WC ID={p.wc_id} nerastas (404). Praleidžiama, DB neliečiama: {p.name}")
+                continue
             print(f"Klaida WC atnaujinant {p.name}: {e}")
 
 
