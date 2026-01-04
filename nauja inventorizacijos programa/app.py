@@ -5,7 +5,8 @@ import os
 
 from models import get_session, Product, Movement
 from movement_utils import record_movement
-from sync_to_wc import sync_prices_and_stock_to_wc, DEMO_MODE  # naudosim jau tureta funkcija.
+from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc, DEMO_MODE  # naudosim jau tureta funkcija.
+from backup_utils import create_backup, DB_PATH
 
 
 def load_products_df(session):
@@ -48,33 +49,42 @@ def main():
 
     # Paprasta slaptazodzio apsauga (env var ADMIN_PASSWORD)
     admin_password = os.getenv("ADMIN_PASSWORD", "")
-    if admin_password:
-        # jei pasikeicia slaptazodis, reikia naujai prisijungti
-        if st.session_state.get("auth_pwd") != admin_password:
-            st.session_state.authed = False
-            st.session_state.auth_pwd = admin_password
+    if not admin_password:
+        st.error("ADMIN_PASSWORD nenurodytas aplinkoje – apsauga isjungta. Nustatyk ir perkrauk.")
+        st.stop()
 
-        if not st.session_state.get("authed"):
-            pwd = st.text_input("Slaptazodis", type="password")
-            if st.button("Prisijungti"):
-                if pwd == admin_password:
-                    st.session_state.authed = True
-                    st.session_state.auth_pwd = admin_password
-                    st.rerun()
-                else:
-                    st.error("Neteisingas slaptazodis.")
-            st.stop()
-        else:
-            st.info("Prisijungta")
-            if st.button("Atsijungti"):
-                st.session_state.authed = False
+    # jei pasikeicia slaptazodis, reikia naujai prisijungti
+    if st.session_state.get("auth_pwd") != admin_password:
+        st.session_state.authed = False
+        st.session_state.auth_pwd = admin_password
+
+    if not st.session_state.get("authed"):
+        pwd = st.text_input("Slaptazodis", type="password")
+        if st.button("Prisijungti"):
+            if pwd == admin_password:
+                st.session_state.authed = True
+                st.session_state.auth_pwd = admin_password
                 st.rerun()
+            else:
+                st.error("Neteisingas slaptazodis.")
+        st.stop()
     else:
-        st.warning("ADMIN_PASSWORD nenurodytas aplinkoje – apsauga isjungta.")
+        st.success("Prisijungta")
+        if st.button("Atsijungti"):
+            st.session_state.authed = False
+            st.rerun()
 
     st.title("Inventorizacijos valdymas")
 
     session = get_session()
+
+    st.markdown("### Atsargines kopijos")
+    if st.button("Sukurti DB atsargine kopija"):
+        try:
+            backup_path = create_backup(label="manual")
+            st.success(f"Atsargine kopija sukurta: {backup_path.name}")
+        except Exception as e:
+            st.error(f"Nepavyko sukurti kopijos: {e}")
 
     st.subheader("Prekiu sarasas")
 
@@ -147,7 +157,14 @@ def main():
         width="stretch",
     )
 
+    backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_on_save")
     if st.button("Issaugoti pakeitimus DB"):
+        if backup_on_save:
+            try:
+                create_backup(label="before_ui_save")
+            except Exception as e:
+                st.error(f"Nepavyko sukurti kopijos: {e}")
+                st.stop()
         products_by_id = {
             p.id: p for p in session.query(Product).filter(Product.active == True).all()
         }
@@ -191,16 +208,36 @@ def main():
         "Sis mygtukas paima kainas ir kiekius is DB ir issiuncia i WooCommerce per API "
         "(tik toms prekems, kurios turi WC_ID)."
     )
-
+    confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
     if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
-        try:
-            sync_prices_and_stock_to_wc()  # viduje pati susikurs WooClient ir sesija.
-            if DEMO_MODE:
-                st.success("Demo rezimas: API nekviestas, ziurek log'us.")
-            else:
+        if DEMO_MODE:
+            st.info("Demo rezimas: API nekviestas.")
+        elif not confirm_push:
+            st.warning("Patvirtink siuntima checkbox'u.")
+        else:
+            try:
+                sync_prices_and_stock_to_wc()  # viduje pati susikurs WooClient ir sesija.
                 st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
-        except Exception as e:
-            st.error(f"Sinchronizacijos klaida: {e}")
+            except Exception as e:
+                st.error(f"Sinchronizacijos klaida: {e}")
+
+    st.markdown("---")
+
+    st.subheader("Importuoti is WooCommerce")
+    st.write("Nuskaito produktus is WC API ir atnaujina DB (prideda naujus, atnaujina kainas/kiekius).")
+    confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc")
+    if st.button("Importuoti is WC"):
+        if DEMO_MODE:
+            st.warning("Demo rezimas: WC importas isjungtas. Isjunk DEMO_MODE.")
+        elif not confirm_pull:
+            st.warning("Patvirtink importa checkbox'u.")
+        else:
+            try:
+                pull_products_from_wc()
+                st.success("Importas is WC baigtas.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Importo klaida: {e}")
 
     st.markdown("---")
 
@@ -208,11 +245,19 @@ def main():
     products_list = session.query(Product).all()
     options = {f"{p.name} (id={p.id})": p.id for p in products_list}
     selected_labels = st.multiselect("Pasirink produktus istrynimui", list(options.keys()))
+    confirm_delete = st.checkbox("Patvirtinu trynima", value=False, key="confirm_delete")
     if st.button("Istrinti pazymetus"):
         selected_ids = [options[label] for label in selected_labels]
         if not selected_ids:
             st.info("Nepasirinktas nei vienas produktas.")
+        elif not confirm_delete:
+            st.warning("Patvirtink trynima checkbox'u.")
         else:
+            try:
+                create_backup(label="before_delete")
+            except Exception as e:
+                st.error(f"Nepavyko sukurti kopijos: {e}")
+                st.stop()
             session.query(Movement).filter(Movement.product_id.in_(selected_ids)).delete(synchronize_session=False)
             session.query(Product).filter(Product.id.in_(selected_ids)).delete(synchronize_session=False)
             session.commit()

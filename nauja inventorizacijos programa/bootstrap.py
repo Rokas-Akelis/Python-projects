@@ -1,7 +1,9 @@
 ﻿# bootstrap_import.py
+import os
 import pandas as pd
 from pathlib import Path
 from models import get_session, Product, Movement, WcProductRaw
+from backup_utils import create_backup
 
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
@@ -15,7 +17,7 @@ def normalize_name(name: str) -> str:
     return " ".join(name.strip().lower().split())
 
 
-def to_int(val, default=0):
+def to_int(val, default=None):
     try:
         if pd.isna(val):
             return default
@@ -45,30 +47,38 @@ def clean_row_dict(row: pd.Series) -> dict:
 def import_wc_only():
     """
     Demo importas: isvalom lentele ir uzpildom vien WC CSV duomenimis.
+    Perskaitom VISUS stulpelius; tuscius paliekam tuscius (None).
     """
+    if os.getenv("ALLOW_DESTRUCTIVE_BOOTSTRAP") != "1":
+        raise RuntimeError("ALLOW_DESTRUCTIVE_BOOTSTRAP=1 nenurodytas. Bootstrap sustabdytas, kad neistrinti DB netycia.")
+
+    # atsargine kopija pries viska
+    create_backup(label="before_bootstrap")
+
     session = get_session()
 
-    # Išvalome senus judėjimus ir produktus, kad nekiltų konfliktų su unique name
+    # Isvalome senus judejimus ir produktus, kad nekiltu konfliktu su unique name
     session.query(Movement).delete()
     session.query(Product).delete()
     session.query(WcProductRaw).delete()
     session.commit()
 
     wc_df = pd.read_csv(WC_CSV_PATH)
-    wc_df["norm_name"] = wc_df["Pavadinimas"].apply(normalize_name)
+    name_col = "Pavadinimas"
+    wc_df["norm_name"] = wc_df[name_col].apply(normalize_name)
 
     seen_names = set()
     seen_wc_ids = set()
 
     for _, row in wc_df.iterrows():
-        name = row.get("Pavadinimas")
+        name = row.get(name_col)
         if not isinstance(name, str) or not name.strip():
             continue
 
         wc_id = to_int(row.get("ID"), default=None)
-        sku = row.get("Prekės kodas")
+        sku = row.get("Prekes kodas") or row.get("Prekės kodas")
         price = to_float(row.get("Reguliari kaina"))
-        quantity = to_int(row.get("Atsargos"), default=0)
+        quantity = to_int(row.get("Atsargos"), default=None)
 
         published = str(row.get("Paskelbtas", "")).strip().lower()
         active = published in {"1", "true", "yes", "taip", "published", "publish"}

@@ -24,6 +24,13 @@ class WooClient:
         resp.raise_for_status()
         return resp.json()
 
+    def list_products(self, per_page: int = 100, page: int = 1):
+        url = urljoin(self.base_url, "wp-json/wc/v3/products")
+        params = self._auth_params() | {"per_page": per_page, "page": page}
+        resp = requests.get(url, params=params)
+        resp.raise_for_status()
+        return resp.json()
+
     def update_price_and_stock(self, wc_id: int, price: float | None, quantity: int | None):
         payload = {}
         if price is not None:

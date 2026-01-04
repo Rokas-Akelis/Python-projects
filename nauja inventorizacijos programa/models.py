@@ -1,4 +1,5 @@
 ﻿# models.py
+from pathlib import Path
 from sqlalchemy import (
     Column,
     Integer,
@@ -12,6 +13,8 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
+BASE_DIR = Path(__file__).parent
+DB_PATH = BASE_DIR / "inventory.db"
 
 
 class Product(Base):
@@ -51,11 +54,12 @@ class WcProductRaw(Base):
     raw = Column(JSON, nullable=False)
 
 
-def get_engine(db_path="sqlite:///inventory.db"):
-    return create_engine(db_path, echo=False)
+def get_engine(db_path=None):
+    url = db_path or f"sqlite:///{DB_PATH}"
+    return create_engine(url, echo=False)
 
 
-def get_session(db_path="sqlite:///inventory.db"):
+def get_session(db_path=None):
     engine = get_engine(db_path)
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
