@@ -20,6 +20,12 @@ class WooClient:
         resp.raise_for_status()
         return resp.json()
 
+    def get_product(self, wc_id: int):
+        url = urljoin(self.base_url, f"wp-json/wc/v3/products/{wc_id}")
+        resp = requests.get(url, auth=self.auth)
+        resp.raise_for_status()
+        return resp.json()
+
     def list_products(self, per_page: int = 100, page: int = 1):
         url = urljoin(self.base_url, "wp-json/wc/v3/products")
         params = {

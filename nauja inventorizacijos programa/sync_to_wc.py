@@ -32,12 +32,44 @@ def sync_prices_and_stock_to_wc():
             continue
 
         try:
+            current = None
+            try:
+                current = woo.get_product(p.wc_id)
+            except Exception as e_get:
+                print(f"WC ID={p.wc_id}: nepavyko perskaityti esamo produkto ({e_get}), bandome vis tiek atnaujinti.")
+
+            wc_type = current.get("type") if isinstance(current, dict) else None
+            if wc_type and wc_type not in {"simple"}:
+                print(f"WC ID={p.wc_id}: type={wc_type} nepalaikomas automatiniam kainos/kiekio atnaujinimui. Praleidžiama.")
+                continue
+
+            current_price = None
+            current_qty = None
+            if isinstance(current, dict):
+                current_price = current.get("regular_price")
+                try:
+                    current_price = float(current_price) if current_price not in ("", None) else None
+                except Exception:
+                    current_price = None
+                current_qty = current.get("stock_quantity")
+                try:
+                    current_qty = int(current_qty) if current_qty is not None else None
+                except Exception:
+                    current_qty = None
+
+            if current_price == p.price and current_qty == p.quantity:
+                print(f"WC ID={p.wc_id}: nėra pokyčių (price={p.price}, qty={p.quantity}).")
+                continue
+
             woo.update_price_and_stock(
                 wc_id=p.wc_id,
                 price=p.price,
                 quantity=p.quantity,
             )
-            print(f"OK. Atnaujinta WC preke ID={p.wc_id} ({p.name})")
+            print(
+                f"OK. WC_ID={p.wc_id} ({p.name})"
+                f" price {current_price}->{p.price}, qty {current_qty}->{p.quantity}"
+            )
         except Exception as e:
             # jei 404 - WC pusėje nėra tokio ID, tiesiog praleidžiam nekeičiant DB
             if hasattr(e, "response") and getattr(e.response, "status_code", None) == 404:
