@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import os
 
-from models import get_session, Product, Movement
+from models import get_session, Product, Movement, WcProductRaw
 from movement_utils import record_movement
 from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc, DEMO_MODE  # naudosim jau tureta funkcija.
 from backup_utils import create_backup, DB_PATH
@@ -42,6 +42,19 @@ def load_movements_df(session, limit: int = 50):
             "Pastaba": movement.note,
         })
     return pd.DataFrame(data)
+
+
+def load_wc_raw_df(session, limit: int = 500):
+    rows = session.query(WcProductRaw).limit(limit).all()
+    if not rows:
+        return pd.DataFrame()
+    data = []
+    for r in rows:
+        payload = r.raw or {}
+        payload = payload.copy()
+        payload["wc_id"] = r.wc_id
+        data.append(payload)
+    return pd.json_normalize(data)
 
 
 def main():
@@ -270,6 +283,14 @@ def main():
         st.info("Judejimu dar nera.")
     else:
         st.dataframe(moves_df, hide_index=True, width="stretch")
+
+    st.markdown("---")
+    with st.expander("WC zali duomenys (pilni CSV stulpeliai, pirmi 500)"):
+        raw_df = load_wc_raw_df(session, limit=500)
+        if raw_df.empty:
+            st.info("WC zali duomenys negauti. Paleisk bootstrap arba WC importa.")
+        else:
+            st.dataframe(raw_df, hide_index=True, width="stretch")
 
 
 if __name__ == "__main__":
