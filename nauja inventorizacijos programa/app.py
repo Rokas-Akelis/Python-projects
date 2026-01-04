@@ -44,8 +44,8 @@ def load_movements_df(session, limit: int = 50):
     return pd.DataFrame(data)
 
 
-def load_wc_raw_df(session, limit: int = 500):
-    rows = session.query(WcProductRaw).limit(limit).all()
+def load_wc_raw_df(session):
+    rows = session.query(WcProductRaw).order_by(WcProductRaw.wc_id).all()
     if not rows:
         return pd.DataFrame()
     data = []
@@ -55,6 +55,24 @@ def load_wc_raw_df(session, limit: int = 500):
         payload["wc_id"] = r.wc_id
         data.append(payload)
     return pd.json_normalize(data)
+
+
+def to_int(val, default=None):
+    try:
+        if pd.isna(val):
+            return default
+        return int(float(val))
+    except Exception:
+        return default
+
+
+def to_float(val, default=None):
+    try:
+        if pd.isna(val):
+            return default
+        return float(val)
+    except Exception:
+        return default
 
 
 def main():
@@ -99,116 +117,91 @@ def main():
         except Exception as e:
             st.error(f"Nepavyko sukurti kopijos: {e}")
 
-    st.subheader("Prekiu sarasas")
-
-    st.markdown("### Prideti nauja produkta")
-    with st.form("add_product_form"):
-        col1, col2, col3 = st.columns(3)
-        name = col1.text_input("Pavadinimas*", "")
-        sku = col2.text_input("SKU", "")
-        wc_id_raw = col3.text_input("WC ID (optional)", "")
-        price = st.number_input("Kaina", min_value=0.0, step=0.01, value=0.0)
-        cost = st.number_input("Savikaina", min_value=0.0, step=0.01, value=0.0)
-        quantity_new = st.number_input("Kiekis", min_value=0, step=1, value=0)
-        active_new = st.checkbox("Aktyvus", value=True)
-        add_submit = st.form_submit_button("Prideti produkta")
-
-        if add_submit:
-            if not name.strip():
-                st.error("Pavadinimas privalomas.")
-            else:
-                existing = session.query(Product).filter(Product.name == name.strip()).one_or_none()
-                if existing:
-                    st.error("Toks produktas jau yra.")
-                else:
-                    try:
-                        wc_id_val = int(wc_id_raw) if wc_id_raw.strip() else None
-                    except Exception:
-                        wc_id_val = None
-
-                    product = Product(
-                        name=name.strip(),
-                        sku=sku.strip() or None,
-                        wc_id=wc_id_val,
-                        cost=cost if cost else None,
-                        price=price if price else None,
-                        quantity=0,
-                        active=active_new,
-                    )
-                    session.add(product)
-                    session.flush()  # kad turetume product.id
-
-                    if quantity_new:
-                        record_movement(
-                            session=session,
-                            product=product,
-                            change=int(quantity_new),
-                            source="manual_ui_add",
-                            note="Prideta nauja preke",
-                        )
-                    session.commit()
-                    st.success("Produktas pridetas.")
-                    st.rerun()
-
-    df = load_products_df(session)
-
-    if df.empty:
-        st.info("DB nera produktu. Pirma paleisk bootstrap importa.")
+    st.subheader("WC CSV pilna lentele")
+    raw_df = load_wc_raw_df(session)
+    if raw_df.empty:
+        st.info("WC zali duomenys negauti. Paleisk bootstrap arba WC importa.")
         return
 
-    edited_df = st.data_editor(
-        df,
-        column_config={
-            "Pavadinimas": st.column_config.TextColumn("Pavadinimas", disabled=True),
-            "Kaina": st.column_config.NumberColumn("Kaina", step=0.01),
-            "Kiekis": st.column_config.NumberColumn("Kiekis", step=1),
-            "SKU": st.column_config.TextColumn("SKU", disabled=True),
-            "WC_ID": st.column_config.NumberColumn("WC_ID", disabled=True),
-        },
-        disabled=["id"],  # id nelieciam
+    edited_raw = st.data_editor(
+        raw_df,
+        num_rows="dynamic",
         hide_index=True,
         width="stretch",
     )
 
-    backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_on_save")
-    if st.button("Issaugoti pakeitimus DB"):
+    backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_raw")
+    if st.button("Issaugoti pilnos lenteles pakeitimus"):
         if backup_on_save:
             try:
-                create_backup(label="before_ui_save")
+                create_backup(label="before_raw_save")
             except Exception as e:
                 st.error(f"Nepavyko sukurti kopijos: {e}")
                 st.stop()
-        products_by_id = {
-            p.id: p for p in session.query(Product).filter(Product.active == True).all()
-        }
 
-        for _, row in edited_df.iterrows():
-            pid = int(row["id"])
-            product = products_by_id.get(pid)
-            if not product:
+        rows = edited_raw.to_dict(orient="records")
+        # map wc_id -> row
+        for row in rows:
+            wc_id = row.get("wc_id")
+            if wc_id in ("", None):
+                continue
+            try:
+                wc_id = int(wc_id)
+            except Exception:
                 continue
 
-            old_price = product.price
-            old_qty = product.quantity or 0
+            clean_raw = {}
+            for k, v in row.items():
+                if k == "wc_id":
+                    continue
+                if pd.isna(v):
+                    clean_raw[k] = None
+                else:
+                    clean_raw[k] = v
 
-            new_price = row["Kaina"]
-            new_qty = int(row["Kiekis"])
+            raw_obj = session.query(WcProductRaw).filter(WcProductRaw.wc_id == wc_id).one_or_none()
+            if not raw_obj:
+                raw_obj = WcProductRaw(wc_id=wc_id, raw=clean_raw)
+                session.add(raw_obj)
+            else:
+                raw_obj.raw = clean_raw
 
-            if new_price != old_price:
-                product.price = new_price
+            # atnaujinam Product
+            name = row.get("Pavadinimas")
+            price = to_float(row.get("Reguliari kaina"))
+            qty = to_int(row.get("Atsargos"))
+            sku = row.get("Prekes kodas") or row.get("Prekės kodas")
 
-            if new_qty != old_qty:
-                change = new_qty - old_qty
-                record_movement(
-                    session=session,
-                    product=product,
-                    change=change,
-                    source="manual_ui",
-                    note="Pakeista per UI",
+            product = session.query(Product).filter(Product.wc_id == wc_id).one_or_none()
+            if not product:
+                product = Product(
+                    name=name.strip() if isinstance(name, str) else f"WC-{wc_id}",
+                    wc_id=wc_id,
+                    sku=sku if isinstance(sku, str) and sku.strip() else None,
+                    price=price,
+                    quantity=qty if qty is not None else 0,
+                    active=True,
                 )
+                session.add(product)
+            else:
+                if isinstance(name, str) and name.strip():
+                    product.name = name.strip()
+                product.sku = sku if isinstance(sku, str) and sku.strip() else product.sku
+                if price is not None:
+                    product.price = price
+                if qty is not None:
+                    old_qty = product.quantity or 0
+                    if qty != old_qty:
+                        session.add(Movement(
+                            product_id=product.id,
+                            change=qty - old_qty,
+                            source="raw_ui",
+                            note="Pakeista per pilna WC lentele",
+                        ))
+                    product.quantity = qty
 
         session.commit()
-        st.success("OK. Pakeitimai issaugoti DB")
+        st.success("Pilnos lenteles pakeitimai issaugoti.")
 
     st.markdown("---")
 
