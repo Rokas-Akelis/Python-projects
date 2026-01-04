@@ -277,14 +277,6 @@ def main():
     else:
         st.dataframe(moves_df, hide_index=True, width="stretch")
 
-    st.markdown("---")
-    with st.expander("WC zali duomenys (pilni CSV stulpeliai, pirmi 500)"):
-        raw_df = load_wc_raw_df(session, limit=500)
-        if raw_df.empty:
-            st.info("WC zali duomenys negauti. Paleisk bootstrap arba WC importa.")
-        else:
-            st.dataframe(raw_df, hide_index=True, width="stretch")
-
 
 if __name__ == "__main__":
     main()
