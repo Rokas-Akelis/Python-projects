@@ -1,9 +1,12 @@
 ﻿# bootstrap_import.py
 import pandas as pd
+from pathlib import Path
 from models import get_session, Product, Movement, WcProductRaw
 
+BASE_DIR = Path(__file__).parent
+DATA_DIR = BASE_DIR / "data"
 # WC CSV kelias (naudosim ji demo importui)
-WC_CSV_PATH = r"C:\Users\rokas\Desktop\nauja inventorius\wc-product-export-16-11-2025-1763321789168.csv"
+WC_CSV_PATH = DATA_DIR / "wc-product-export-16-11-2025-1763321789168.csv"
 
 
 def normalize_name(name: str) -> str:
