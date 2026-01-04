@@ -60,6 +60,16 @@ def pull_products_from_wc():
     session = get_session()
     woo = WooClient(base_url=WC_BASE_URL, consumer_key=WC_CK, consumer_secret=WC_CS)
 
+    # paruosiam map'us is DB
+    products = session.query(Product).all()
+    by_wc_id = {p.wc_id: p for p in products if p.wc_id}
+    by_norm_name = { " ".join(p.name.strip().lower().split()): p for p in products if p.name }
+
+    def normalize(name: str) -> str:
+        if not isinstance(name, str):
+            return ""
+        return " ".join(name.strip().lower().split())
+
     page = 1
     total_imported = 0
     while True:
@@ -84,7 +94,9 @@ def pull_products_from_wc():
                 quantity = 0
             sku = item.get("sku") or None
 
-            product = session.query(Product).filter(Product.wc_id == wc_id).one_or_none()
+            norm = normalize(name)
+            product = by_wc_id.get(wc_id) or by_norm_name.get(norm)
+
             if not product:
                 product = Product(
                     name=name,
@@ -95,7 +107,15 @@ def pull_products_from_wc():
                     active=True,
                 )
                 session.add(product)
+                if wc_id:
+                    by_wc_id[wc_id] = product
+                if norm:
+                    by_norm_name[norm] = product
             else:
+                # jeigu wc_id dar nesetintas, priskiriam
+                if not product.wc_id and wc_id:
+                    product.wc_id = wc_id
+                    by_wc_id[wc_id] = product
                 # judesio zurnalas tik jei keiciasi kiekis
                 old_qty = product.quantity or 0
                 if quantity != old_qty:
