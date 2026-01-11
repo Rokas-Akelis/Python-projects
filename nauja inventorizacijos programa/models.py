@@ -1,5 +1,7 @@
 ﻿# models.py
 from pathlib import Path
+import os
+import tempfile
 from sqlalchemy import (
     Column,
     Integer,
@@ -15,6 +17,23 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 Base = declarative_base()
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "inventory.db"
+
+
+def _is_writable_path(path: Path) -> bool:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return False
+    return os.access(path.parent, os.W_OK)
+
+
+def get_default_db_path() -> Path:
+    env_path = os.getenv("INVENTORY_DB_PATH")
+    if env_path:
+        return Path(env_path)
+    if _is_writable_path(DB_PATH):
+        return DB_PATH
+    return Path(tempfile.gettempdir()) / "inventory.db"
 
 
 class Product(Base):
@@ -55,7 +74,13 @@ class WcProductRaw(Base):
 
 
 def get_engine(db_path=None):
-    url = db_path or f"sqlite:///{DB_PATH}"
+    if db_path is None:
+        path = get_default_db_path()
+        url = f"sqlite:///{path.as_posix()}"
+    elif isinstance(db_path, Path):
+        url = f"sqlite:///{db_path.as_posix()}"
+    else:
+        url = db_path
     return create_engine(url, echo=False)
 
 

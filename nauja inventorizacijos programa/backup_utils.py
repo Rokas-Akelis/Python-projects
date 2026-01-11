@@ -1,10 +1,26 @@
 from pathlib import Path
+import os
 import shutil
+import tempfile
 import time
 
+from models import get_default_db_path
+
 BASE_DIR = Path(__file__).parent
-DB_PATH = BASE_DIR / "inventory.db"
-BACKUP_DIR = BASE_DIR / "backups"
+DB_PATH = get_default_db_path()
+
+
+def _resolve_backup_dir() -> Path:
+    env_dir = os.getenv("INVENTORY_BACKUP_DIR")
+    if env_dir:
+        return Path(env_dir)
+    base_dir = DB_PATH.parent
+    if not os.access(base_dir, os.W_OK):
+        base_dir = Path(tempfile.gettempdir())
+    return base_dir / "backups"
+
+
+BACKUP_DIR = _resolve_backup_dir()
 
 
 def ensure_backup_dir() -> Path:
