@@ -108,58 +108,63 @@ def apply_theme():
         """
         <style>
         :root {
-          --bg: #f4efe6;
-          --bg-2: #e9e1d5;
+          --bg: #f2f5f9;
           --surface: #ffffff;
-          --surface-2: #f8f4ee;
-          --text: #1b1b1b;
-          --muted: #5f5b52;
-          --accent: #0f766e;
-          --accent-2: #d97706;
-          --border: rgba(27,27,27,0.12);
-          --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-          --radius: 14px;
+          --surface-2: #f8fafc;
+          --text: #0f172a;
+          --muted: #64748b;
+          --accent: #1d4ed8;
+          --accent-2: #0ea5e9;
+          --border: rgba(15, 23, 42, 0.12);
+          --shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+          --radius: 16px;
         }
 
         html, body, [class*="css"] {
-          font-family: "Trebuchet MS", "Verdana", sans-serif;
+          font-family: "Candara", "Tahoma", sans-serif;
           color: var(--text);
         }
 
         .stApp {
           background:
-            radial-gradient(1200px circle at 10% -10%, #fff7e6 0%, transparent 60%),
-            radial-gradient(900px circle at 90% 0%, #e8f4f1 0%, transparent 55%),
-            linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+            repeating-linear-gradient(
+              135deg,
+              rgba(15, 23, 42, 0.03) 0px,
+              rgba(15, 23, 42, 0.03) 2px,
+              transparent 2px,
+              transparent 10px
+            ),
+            radial-gradient(900px circle at 90% 5%, #e6f0ff 0%, transparent 55%),
+            radial-gradient(900px circle at 10% 0%, #e9f7ff 0%, transparent 50%),
+            linear-gradient(180deg, #f7f9fc 0%, var(--bg) 100%);
         }
 
         .block-container {
-          padding-top: 2.5rem;
+          padding-top: 2.2rem;
           max-width: 1200px;
         }
 
         h1, h2, h3 {
-          font-family: "Georgia", "Times New Roman", serif;
+          font-family: "Palatino Linotype", "Book Antiqua", serif;
           letter-spacing: 0.02em;
         }
 
-        h1 { font-size: 2.4rem; }
-        h2 { font-size: 1.5rem; }
-        h3 { font-size: 1.1rem; color: var(--muted); }
-
         .hero {
-          background: linear-gradient(135deg, #ffffff 0%, #f8f1e6 100%);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 1rem;
+          background: var(--surface);
           border: 1px solid var(--border);
-          border-radius: 18px;
+          border-radius: 20px;
           padding: 1.6rem 1.8rem;
           box-shadow: var(--shadow);
           margin-bottom: 1.2rem;
-          animation: fadeInUp 500ms ease-out;
         }
 
         .hero-title {
           font-size: 2rem;
-          font-family: "Georgia", "Times New Roman", serif;
+          font-family: "Palatino Linotype", "Book Antiqua", serif;
           margin-bottom: 0.2rem;
         }
 
@@ -167,19 +172,44 @@ def apply_theme():
           color: var(--muted);
         }
 
+        .hero-badges {
+          display: flex;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+
+        .badge {
+          padding: 0.25rem 0.6rem;
+          border-radius: 999px;
+          border: 1px solid var(--border);
+          background: var(--surface-2);
+          color: var(--muted);
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+        }
+
+        .section-title {
+          font-size: 0.8rem;
+          text-transform: uppercase;
+          letter-spacing: 0.14em;
+          color: var(--muted);
+          margin: 0.2rem 0 0.6rem;
+        }
+
         .stButton button {
-          background: linear-gradient(135deg, var(--accent), #0f5a52);
+          background: linear-gradient(135deg, var(--accent), var(--accent-2));
           color: #fff;
           border: none;
-          padding: 0.55rem 1rem;
+          padding: 0.6rem 1.1rem;
           border-radius: 999px;
-          box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
+          box-shadow: 0 10px 20px rgba(29, 78, 216, 0.25);
           transition: transform 120ms ease, box-shadow 120ms ease;
         }
 
         .stButton button:hover {
           transform: translateY(-1px);
-          box-shadow: 0 12px 22px rgba(15, 118, 110, 0.3);
+          box-shadow: 0 14px 24px rgba(29, 78, 216, 0.3);
         }
 
         .stButton button:active { transform: translateY(0); }
@@ -190,8 +220,8 @@ def apply_theme():
         div[data-testid="stSelectbox"] select {
           background: var(--surface);
           border: 1px solid var(--border);
-          border-radius: 10px;
-          padding: 0.55rem 0.75rem;
+          border-radius: 12px;
+          padding: 0.6rem 0.8rem;
         }
 
         div[data-testid="stDataFrame"],
@@ -208,15 +238,10 @@ def apply_theme():
           background: linear-gradient(90deg, transparent, var(--border), transparent);
         }
 
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 640px) {
+        @media (max-width: 780px) {
           .block-container { padding-top: 1.2rem; }
-          h1 { font-size: 2rem; }
-          .hero { padding: 1.2rem; }
+          .hero { flex-direction: column; align-items: flex-start; }
+          .hero-title { font-size: 1.6rem; }
         }
         </style>
         """,
@@ -258,8 +283,15 @@ def main():
     st.markdown(
         """
         <div class="hero">
-          <div class="hero-title">Inventorizacijos valdymas</div>
-          <div class="hero-subtitle">Pilna WC CSV perziura, redagavimas ir sinchronizacija vienoje vietoje.</div>
+          <div>
+            <div class="hero-title">Inventorizacijos valdymas</div>
+            <div class="hero-subtitle">Moderni ir paprasta sistema kasdieniams WC duomenu veiksmams.</div>
+          </div>
+          <div class="hero-badges">
+            <span class="badge">CSV</span>
+            <span class="badge">WC Sync</span>
+            <span class="badge">Atsargos</span>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -267,33 +299,41 @@ def main():
 
     session = get_session()
 
-    st.markdown("### Atsargines kopijos")
-    if st.button("Sukurti DB atsargine kopija"):
-        try:
-            backup_path = create_backup(label="manual")
-            if backup_path is None:
-                st.warning("DB dar nesukurta - kopija nesukurta.")
-            else:
-                st.success(f"Atsargine kopija sukurta: {backup_path.name}")
-        except Exception as e:
-            st.error(f"Nepavyko sukurti kopijos: {e}")
-
-    st.subheader("WC CSV importas")
-    csv_upload = st.file_uploader("Pasirink WC CSV faila", type=["csv"])
-    csv_path = st.text_input("Arba WC CSV kelias (lokaliai)", value="")
-    if st.button("Importuoti WC CSV"):
-        if csv_upload is None and not csv_path.strip():
-            st.warning("Pasirink CSV faila arba nurodyk kelia.")
-        else:
+    st.markdown('<div class="section-title">Pagrindiniai veiksmai</div>', unsafe_allow_html=True)
+    col_left, col_right = st.columns([1, 2], gap="large")
+    with col_left:
+        st.markdown("#### Atsargines kopijos")
+        st.caption("Rekomenduojama pries importa ar didesnius pakeitimus.")
+        if st.button("Sukurti DB atsargine kopija"):
             try:
-                csv_bytes = csv_upload.getvalue() if csv_upload is not None else None
-                result = merge_wc_csv(csv_path=csv_path.strip() or None, csv_bytes=csv_bytes)
-                st.success(f"CSV importas baigtas. Nauju: {result['new']}, atnaujinta: {result['updated']}.")
-                st.rerun()
+                backup_path = create_backup(label="manual")
+                if backup_path is None:
+                    st.warning("DB dar nesukurta - kopija nesukurta.")
+                else:
+                    st.success(f"Atsargine kopija sukurta: {backup_path.name}")
             except Exception as e:
-                st.error(f"CSV importo klaida: {e}")
+                st.error(f"Nepavyko sukurti kopijos: {e}")
 
-    st.subheader("WC CSV pilna lentele")
+    with col_right:
+        st.markdown("#### WC CSV importas")
+        st.caption("Ikelk naujausi WC CSV ir atnaujink DB.")
+        csv_upload = st.file_uploader("Pasirink WC CSV faila", type=["csv"])
+        csv_path = st.text_input("Arba WC CSV kelias (lokaliai)", value="")
+        if st.button("Importuoti WC CSV"):
+            if csv_upload is None and not csv_path.strip():
+                st.warning("Pasirink CSV faila arba nurodyk kelia.")
+            else:
+                try:
+                    csv_bytes = csv_upload.getvalue() if csv_upload is not None else None
+                    result = merge_wc_csv(csv_path=csv_path.strip() or None, csv_bytes=csv_bytes)
+                    st.success(f"CSV importas baigtas. Nauju: {result['new']}, atnaujinta: {result['updated']}.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"CSV importo klaida: {e}")
+
+    st.markdown("---")
+    st.markdown('<div class="section-title">Duomenu perziura</div>', unsafe_allow_html=True)
+    st.markdown("#### WC CSV pilna lentele")
     raw_df = load_wc_raw_df(session)
     if raw_df.empty:
         st.info("WC zali duomenys negauti. Importuok WC CSV arba WC API.")
@@ -381,47 +421,51 @@ def main():
 
     st.markdown("---")
 
-    st.subheader("Sinchronizacija su WooCommerce")
+    st.markdown("---")
+    st.markdown('<div class="section-title">WC integracija</div>', unsafe_allow_html=True)
+    col_sync, col_pull = st.columns(2, gap="large")
+    with col_sync:
+        st.markdown("#### Sinchronizacija i WC")
+        st.write(
+            "Sis mygtukas paima kainas ir kiekius is DB ir issiuncia i WooCommerce per API "
+            "(tik toms prekems, kurios turi WC_ID)."
+        )
+        sync_ids_text = st.text_input(
+            "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
+            value=os.getenv("WC_SYNC_IDS", ""),
+            key="sync_wc_ids",
+        )
+        confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
+        if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
+            if not confirm_push:
+                st.warning("Patvirtink siuntima checkbox'u.")
+            else:
+                try:
+                    sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)  # viduje pati susikurs WooClient ir sesija.
+                    st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
+                except Exception as e:
+                    st.error(f"Sinchronizacijos klaida: {e}")
 
-    st.write(
-        "Sis mygtukas paima kainas ir kiekius is DB ir issiuncia i WooCommerce per API "
-        "(tik toms prekems, kurios turi WC_ID)."
-    )
-    sync_ids_text = st.text_input(
-        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
-        value=os.getenv("WC_SYNC_IDS", ""),
-        key="sync_wc_ids",
-    )
-    confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
-    if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
-        if not confirm_push:
-            st.warning("Patvirtink siuntima checkbox'u.")
-        else:
-            try:
-                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)  # viduje pati susikurs WooClient ir sesija.
-                st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
-            except Exception as e:
-                st.error(f"Sinchronizacijos klaida: {e}")
+    with col_pull:
+        st.markdown("#### Importuoti is WC")
+        st.write("Nuskaito produktus is WC API ir atnaujina DB (prideda naujus, atnaujina kainas/kiekius).")
+        confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc")
+        if st.button("Importuoti is WC"):
+            if not confirm_pull:
+                st.warning("Patvirtink importa checkbox'u.")
+            else:
+                try:
+                    pull_products_from_wc()
+                    st.success("Importas is WC baigtas.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Importo klaida: {e}")
 
     st.markdown("---")
 
-    st.subheader("Importuoti is WooCommerce")
-    st.write("Nuskaito produktus is WC API ir atnaujina DB (prideda naujus, atnaujina kainas/kiekius).")
-    confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc")
-    if st.button("Importuoti is WC"):
-        if not confirm_pull:
-            st.warning("Patvirtink importa checkbox'u.")
-        else:
-            try:
-                pull_products_from_wc()
-                st.success("Importas is WC baigtas.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Importo klaida: {e}")
-
     st.markdown("---")
-
-    st.subheader("Istrinti produktus")
+    st.markdown('<div class="section-title">Valdymas</div>', unsafe_allow_html=True)
+    st.markdown("#### Istrinti produktus")
     products_list = session.query(Product).all()
     options = {f"{p.name} (id={p.id})": p.id for p in products_list}
     selected_labels = st.multiselect("Pasirink produktus istrynimui", list(options.keys()))
@@ -444,7 +488,7 @@ def main():
             st.success("Pasirinkti produktai istrinti.")
             st.rerun()
 
-    st.subheader("Judejimu zurnalas (paskutiniai 50)")
+    st.markdown("#### Judejimu zurnalas (paskutiniai 50)")
     moves_df = load_movements_df(session)
     if moves_df.empty:
         st.info("Judejimu dar nera.")
