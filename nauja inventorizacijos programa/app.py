@@ -18,13 +18,15 @@ def load_products_df(session):
     for p in products:
         data.append({
             "id": p.id,
+            "WC_ID": p.wc_id,
             "Pavadinimas": p.name,
             "Kaina": p.price,
             "Kiekis": p.quantity,
-            "SKU": p.sku,
-            "WC_ID": p.wc_id,
         })
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    if not df.empty:
+        df = df.set_index("id")
+    return df
 
 
 def load_movements_df(session, limit: int = 50):
@@ -339,76 +341,34 @@ def main():
 
     st.markdown("---")
     st.markdown('<div class="section-title">Duomenu perziura</div>', unsafe_allow_html=True)
-    st.markdown("#### WC CSV pilna lentele")
-    raw_df = load_wc_raw_df(session)
-    if raw_df.empty:
-        st.info("WC zali duomenys negauti. Importuok WC CSV arba WC API.")
-        return
+    st.markdown("#### Esminiai duomenys")
+    products_df = load_products_df(session)
+    if products_df.empty:
+        st.info("DB tuscia. Importuok WC CSV arba WC API.")
+    else:
+        edited_products = st.data_editor(
+            products_df,
+            num_rows="fixed",
+            hide_index=True,
+            disabled=["WC_ID", "Pavadinimas"],
+            width="stretch",
+        )
 
-    edited_raw = st.data_editor(
-        raw_df,
-        num_rows="dynamic",
-        hide_index=True,
-        width="stretch",
-    )
+        backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_products")
+        if st.button("Issaugoti kainu/kiekiu pakeitimus"):
+            if backup_on_save:
+                try:
+                    create_backup(label="before_products_save")
+                except Exception as e:
+                    st.error(f"Nepavyko sukurti kopijos: {e}")
+                    st.stop()
 
-    backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_raw")
-    if st.button("Issaugoti pilnos lenteles pakeitimus"):
-        if backup_on_save:
-            try:
-                create_backup(label="before_raw_save")
-            except Exception as e:
-                st.error(f"Nepavyko sukurti kopijos: {e}")
-                st.stop()
-
-        rows = edited_raw.to_dict(orient="records")
-        # map wc_id -> row
-        for row in rows:
-            wc_id = row.get("wc_id")
-            if wc_id in ("", None):
-                continue
-            try:
-                wc_id = int(wc_id)
-            except Exception:
-                continue
-
-            clean_raw = {}
-            for k, v in row.items():
-                if k == "wc_id":
+            for product_id, row in edited_products.iterrows():
+                product = session.query(Product).filter(Product.id == product_id).one_or_none()
+                if not product:
                     continue
-                if pd.isna(v):
-                    clean_raw[k] = None
-                else:
-                    clean_raw[k] = v
-
-            raw_obj = session.query(WcProductRaw).filter(WcProductRaw.wc_id == wc_id).one_or_none()
-            if not raw_obj:
-                raw_obj = WcProductRaw(wc_id=wc_id, raw=clean_raw)
-                session.add(raw_obj)
-            else:
-                raw_obj.raw = clean_raw
-
-            # atnaujinam Product
-            name = row.get("Pavadinimas")
-            price = to_float(row.get("Reguliari kaina"))
-            qty = to_int(row.get("Atsargos"))
-            sku = row.get("Prekes kodas") or row.get("Prekės kodas")
-
-            product = session.query(Product).filter(Product.wc_id == wc_id).one_or_none()
-            if not product:
-                product = Product(
-                    name=name.strip() if isinstance(name, str) else f"WC-{wc_id}",
-                    wc_id=wc_id,
-                    sku=sku if isinstance(sku, str) and sku.strip() else None,
-                    price=price,
-                    quantity=qty if qty is not None else 0,
-                    active=True,
-                )
-                session.add(product)
-            else:
-                if isinstance(name, str) and name.strip():
-                    product.name = name.strip()
-                product.sku = sku if isinstance(sku, str) and sku.strip() else product.sku
+                price = to_float(row.get("Kaina"))
+                qty = to_int(row.get("Kiekis"))
                 if price is not None:
                     product.price = price
                 if qty is not None:
@@ -417,13 +377,13 @@ def main():
                         session.add(Movement(
                             product_id=product.id,
                             change=qty - old_qty,
-                            source="raw_ui",
-                            note="Pakeista per pilna WC lentele",
+                            source="products_ui",
+                            note="Pakeista per esminiu duomenu lentele",
                         ))
                     product.quantity = qty
 
-        session.commit()
-        st.success("Pilnos lenteles pakeitimai issaugoti.")
+            session.commit()
+            st.success("Kainu/kiekiu pakeitimai issaugoti.")
 
     st.markdown("---")
 
