@@ -1,33 +1,38 @@
 import importlib
+import os
 import sys
 import types
+import unittest
+from unittest.mock import patch
 
-import pytest
+import path_setup  # noqa: F401
 
 
-def test_main_requires_password(monkeypatch):
-    calls = {"error": False}
+class TestAppMain(unittest.TestCase):
+    def test_main_requires_password(self):
+        calls = {"error": False}
 
-    def error(msg):
-        calls["error"] = True
+        def error(msg):
+            calls["error"] = True
 
-    def stop():
-        raise RuntimeError("stopped")
+        def stop():
+            raise RuntimeError("stopped")
 
-    stub = types.SimpleNamespace(
-        set_page_config=lambda **kwargs: None,
-        error=error,
-        stop=stop,
-    )
+        stub = types.SimpleNamespace(
+            set_page_config=lambda **kwargs: None,
+            error=error,
+            stop=stop,
+        )
 
-    sys.modules["streamlit"] = stub
-    monkeypatch.delenv("ADMIN_PASSWORD", raising=False)
+        with patch.dict(sys.modules, {"streamlit": stub}):
+            with patch.dict(os.environ, {}, clear=True):
+                if "app" in sys.modules:
+                    del sys.modules["app"]
+                import app  # noqa: E402
 
-    import app  # noqa: E402
+                importlib.reload(app)
 
-    importlib.reload(app)
+                with self.assertRaises(RuntimeError):
+                    app.main()
 
-    with pytest.raises(RuntimeError):
-        app.main()
-
-    assert calls["error"] is True
+        self.assertTrue(calls["error"])

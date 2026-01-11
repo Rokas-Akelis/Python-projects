@@ -1,99 +1,103 @@
+import unittest
+from unittest.mock import patch
+
+import path_setup  # noqa: F401
+
 from woo_client import WooClient
 import woo_client
 
 
-def test_update_price_and_stock_builds_payload():
-    calls = []
+class TestWooClient(unittest.TestCase):
+    def test_update_price_and_stock_builds_payload(self):
+        calls = []
 
-    class TestClient(WooClient):
-        def update_product(self, wc_id, data):
-            calls.append((wc_id, data))
-            return {"ok": True}
+        class TestClient(WooClient):
+            def update_product(self, wc_id, data):
+                calls.append((wc_id, data))
+                return {"ok": True}
 
-    client = TestClient("https://example.com", "ck", "cs")
-    client.update_price_and_stock(5, price=9.99, quantity=7)
+        client = TestClient("https://example.com", "ck", "cs")
+        client.update_price_and_stock(5, price=9.99, quantity=7)
 
-    assert calls == [
-        (
-            5,
-            {
-                "regular_price": "9.99",
-                "stock_quantity": 7,
-                "manage_stock": True,
-            },
+        self.assertEqual(
+            calls,
+            [
+                (
+                    5,
+                    {
+                        "regular_price": "9.99",
+                        "stock_quantity": 7,
+                        "manage_stock": True,
+                    },
+                )
+            ],
         )
-    ]
 
+    def test_update_price_and_stock_empty_payload(self):
+        calls = []
 
-def test_update_price_and_stock_empty_payload():
-    calls = []
+        class TestClient(WooClient):
+            def update_product(self, wc_id, data):
+                calls.append((wc_id, data))
+                return {"ok": True}
 
-    class TestClient(WooClient):
-        def update_product(self, wc_id, data):
-            calls.append((wc_id, data))
-            return {"ok": True}
+        client = TestClient("https://example.com", "ck", "cs")
+        result = client.update_price_and_stock(5, price=None, quantity=None)
 
-    client = TestClient("https://example.com", "ck", "cs")
-    result = client.update_price_and_stock(5, price=None, quantity=None)
+        self.assertIsNone(result)
+        self.assertEqual(calls, [])
 
-    assert result is None
-    assert calls == []
+    def test_update_product_calls_requests(self):
+        calls = {}
 
+        class FakeResp:
+            def raise_for_status(self):
+                return None
 
-def test_update_product_calls_requests(monkeypatch):
-    calls = {}
+            def json(self):
+                return {"ok": True}
 
-    class FakeResp:
-        def raise_for_status(self):
-            return None
+        def fake_put(url, auth=None, json=None):
+            calls["url"] = url
+            calls["auth"] = auth
+            calls["json"] = json
+            return FakeResp()
 
-        def json(self):
-            return {"ok": True}
+        with patch.object(woo_client.requests, "put", fake_put):
+            client = WooClient("https://example.com", "ck", "cs")
+            resp = client.update_product(12, {"a": 1})
 
-    def fake_put(url, auth=None, json=None):
-        calls["url"] = url
-        calls["auth"] = auth
-        calls["json"] = json
-        return FakeResp()
+        self.assertEqual(resp, {"ok": True})
+        self.assertTrue(calls["url"].endswith("/wp-json/wc/v3/products/12"))
+        self.assertEqual(calls["auth"], ("ck", "cs"))
+        self.assertEqual(calls["json"], {"a": 1})
 
-    monkeypatch.setattr(woo_client.requests, "put", fake_put)
+    def test_get_and_list_products_calls_requests(self):
+        calls = {"get": []}
 
-    client = WooClient("https://example.com", "ck", "cs")
-    resp = client.update_product(12, {"a": 1})
+        class FakeResp:
+            def __init__(self, payload):
+                self.payload = payload
 
-    assert resp == {"ok": True}
-    assert calls["url"].endswith("/wp-json/wc/v3/products/12")
-    assert calls["auth"] == ("ck", "cs")
-    assert calls["json"] == {"a": 1}
+            def raise_for_status(self):
+                return None
 
+            def json(self):
+                return self.payload
 
-def test_get_and_list_products_calls_requests(monkeypatch):
-    calls = {"get": []}
+        def fake_get(url, auth=None, params=None):
+            calls["get"].append({"url": url, "auth": auth, "params": params})
+            payload = {"id": 1} if params is None else []
+            return FakeResp(payload)
 
-    class FakeResp:
-        def __init__(self, payload):
-            self.payload = payload
+        with patch.object(woo_client.requests, "get", fake_get):
+            client = WooClient("https://example.com", "ck", "cs")
+            prod = client.get_product(1)
+            self.assertEqual(prod, {"id": 1})
 
-        def raise_for_status(self):
-            return None
+            products = client.list_products(per_page=50, page=2)
+            self.assertEqual(products, [])
 
-        def json(self):
-            return self.payload
-
-    def fake_get(url, auth=None, params=None):
-        calls["get"].append({"url": url, "auth": auth, "params": params})
-        payload = {"id": 1} if params is None else []
-        return FakeResp(payload)
-
-    monkeypatch.setattr(woo_client.requests, "get", fake_get)
-
-    client = WooClient("https://example.com", "ck", "cs")
-    prod = client.get_product(1)
-    assert prod == {"id": 1}
-
-    products = client.list_products(per_page=50, page=2)
-    assert products == []
-
-    assert calls["get"][0]["url"].endswith("/wp-json/wc/v3/products/1")
-    assert calls["get"][1]["url"].endswith("/wp-json/wc/v3/products")
-    assert calls["get"][1]["params"] == {"per_page": 50, "page": 2}
+        self.assertTrue(calls["get"][0]["url"].endswith("/wp-json/wc/v3/products/1"))
+        self.assertTrue(calls["get"][1]["url"].endswith("/wp-json/wc/v3/products"))
+        self.assertEqual(calls["get"][1]["params"], {"per_page": 50, "page": 2})
