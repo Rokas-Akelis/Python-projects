@@ -72,6 +72,31 @@ class TestWooClient(unittest.TestCase):
         self.assertEqual(calls["auth"], ("ck", "cs"))
         self.assertEqual(calls["json"], {"a": 1})
 
+    def test_update_products_batch_calls_requests(self):
+        calls = {}
+
+        class FakeResp:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"ok": True}
+
+        def fake_post(url, auth=None, json=None):
+            calls["url"] = url
+            calls["auth"] = auth
+            calls["json"] = json
+            return FakeResp()
+
+        with patch.object(woo_client.requests, "post", fake_post):
+            client = WooClient("https://example.com", "ck", "cs")
+            resp = client.update_products_batch([{"id": 1, "regular_price": "9.0"}])
+
+        self.assertEqual(resp, {"ok": True})
+        self.assertTrue(calls["url"].endswith("/wp-json/wc/v3/products/batch"))
+        self.assertEqual(calls["auth"], ("ck", "cs"))
+        self.assertEqual(calls["json"], {"update": [{"id": 1, "regular_price": "9.0"}]})
+
     def test_get_and_list_products_calls_requests(self):
         calls = {"get": []}
 

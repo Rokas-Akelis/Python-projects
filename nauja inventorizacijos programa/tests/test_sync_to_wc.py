@@ -42,9 +42,9 @@ class TestSyncToWC(unittest.TestCase):
                     def get_product(self, wc_id):
                         return {"type": "simple", "regular_price": "1.0", "stock_quantity": 1}
 
-                    def update_price_and_stock(self, wc_id, price, quantity):
-                        updates.append((wc_id, price, quantity))
-                        return {"id": wc_id}
+                    def update_products_batch(self, payload):
+                        updates.extend(payload)
+                        return {"update": [{"id": item.get("id")} for item in payload]}
 
                 with patch.object(sync_to_wc, "WooClient", FakeWoo), patch.object(
                     sync_to_wc, "get_session", return_value=session
@@ -55,7 +55,17 @@ class TestSyncToWC(unittest.TestCase):
                 ):
                     sync_to_wc.sync_prices_and_stock_to_wc(allowed_wc_ids="1")
 
-                self.assertEqual(updates, [(1, 10.0, 5)])
+                self.assertEqual(
+                    updates,
+                    [
+                        {
+                            "id": 1,
+                            "regular_price": "10.0",
+                            "stock_quantity": 5,
+                            "manage_stock": True,
+                        }
+                    ],
+                )
             finally:
                 _close_session(session)
 

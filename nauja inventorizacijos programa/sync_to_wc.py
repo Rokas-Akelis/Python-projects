@@ -8,6 +8,19 @@ WC_BASE_URL = os.getenv("WC_BASE_URL")
 WC_CK = os.getenv("WC_CK")
 WC_CS = os.getenv("WC_CS")
 WC_SYNC_IDS_RAW = os.getenv("WC_SYNC_IDS", "").strip()
+WC_BATCH_SIZE_RAW = os.getenv("WC_BATCH_SIZE", "").strip()
+
+
+def _parse_batch_size(value, default=100) -> int:
+    if value in (None, ""):
+        return default
+    try:
+        size = int(value)
+        if size <= 0:
+            return default
+        return size
+    except Exception:
+        return default
 
 
 def _normalize_wc_sync_ids(value) -> set[int]:
@@ -36,6 +49,7 @@ def _normalize_wc_sync_ids(value) -> set[int]:
 
 
 DEFAULT_WC_SYNC_IDS = _normalize_wc_sync_ids(WC_SYNC_IDS_RAW)
+WC_BATCH_SIZE = _parse_batch_size(WC_BATCH_SIZE_RAW, default=100)
 
 
 def _wc_id_allowed(wc_id, allowed_ids: set[int]) -> bool:
@@ -111,7 +125,7 @@ def _update_raw_after_push(session, wc_id, raw_obj, price, quantity):
         session.add(WcProductRaw(wc_id=wc_id, raw=raw))
 
 
-def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
+def sync_prices_and_stock_to_wc(allowed_wc_ids=None, batch_size=None):
     session = get_session()
 
     if not (WC_BASE_URL and WC_CK and WC_CS):
@@ -122,8 +136,82 @@ def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
     if allowed_ids:
         print(f"Filtras aktyvus (WC_SYNC_IDS): {sorted(allowed_ids)}")
 
+    batch_size = _parse_batch_size(batch_size, default=WC_BATCH_SIZE)
     products = session.query(Product).filter(Product.active == True).all()
+    batch_updates = []
+    batch_meta = {}
     raw_dirty = False
+
+    def flush_batch():
+        nonlocal raw_dirty
+        if not batch_updates:
+            return
+        try:
+            result = woo.update_products_batch(batch_updates)
+        except Exception as e:
+            print(f"Klaida WC batch atnaujinant {len(batch_updates)} produktu: {e}")
+            batch_updates.clear()
+            batch_meta.clear()
+            return
+
+        if isinstance(result, dict):
+            update_items = result.get("update") or []
+        elif isinstance(result, list):
+            update_items = result
+        else:
+            update_items = []
+
+        success_ids = set()
+        error_ids = set()
+        for item in update_items:
+            if not isinstance(item, dict):
+                continue
+            wc_id = item.get("id")
+            try:
+                wc_id = int(wc_id)
+            except Exception:
+                continue
+            if "error" in item:
+                error_ids.add(wc_id)
+                err = item.get("error")
+                msg = err.get("message") if isinstance(err, dict) else str(err)
+                name = batch_meta.get(wc_id, {}).get("name", "?")
+                print(f"Klaida WC atnaujinant {name} (ID={wc_id}): {msg}")
+                continue
+            success_ids.add(wc_id)
+
+        if not update_items:
+            print(f"WC batch atsakymas tuscias, nepatvirtinti {len(batch_updates)} atnaujinimai.")
+
+        for wc_id, meta in batch_meta.items():
+            if update_items:
+                if wc_id in error_ids:
+                    continue
+                if success_ids and wc_id not in success_ids:
+                    print(f"WC ID={wc_id}: atnaujinimas nepatvirtintas, DB nelieciama.")
+                    continue
+            else:
+                continue
+
+            prev_price = meta["prev_price"]
+            prev_qty = meta["prev_qty"]
+            send_price = meta["send_price"]
+            send_qty = meta["send_qty"]
+            name = meta["name"]
+            price = meta["price"]
+            quantity = meta["quantity"]
+
+            print(
+                f"OK. WC_ID={wc_id} ({name})"
+                f" price {prev_price}->{price if send_price is not None else prev_price},"
+                f" qty {prev_qty}->{quantity if send_qty is not None else prev_qty}"
+            )
+
+            _update_raw_after_push(session, wc_id, meta["raw_obj"], send_price, send_qty)
+            raw_dirty = True
+
+        batch_updates.clear()
+        batch_meta.clear()
 
     for p in products:
         if not p.wc_id:
@@ -174,22 +262,27 @@ def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
             if send_price is None and send_qty is None:
                 continue
 
-            woo.update_price_and_stock(
-                wc_id=p.wc_id,
-                price=send_price,
-                quantity=send_qty,
-            )
+            payload = {"id": int(p.wc_id)}
+            if send_price is not None:
+                payload["regular_price"] = str(send_price)
+            if send_qty is not None:
+                payload["stock_quantity"] = int(send_qty)
+                payload["manage_stock"] = True
 
-            prev_price = raw_price if raw_price is not None else "-"
-            prev_qty = raw_qty if raw_qty is not None else "-"
-            print(
-                f"OK. WC_ID={p.wc_id} ({p.name})"
-                f" price {prev_price}->{p.price if send_price is not None else prev_price},"
-                f" qty {prev_qty}->{p.quantity if send_qty is not None else prev_qty}"
-            )
+            batch_updates.append(payload)
+            batch_meta[int(p.wc_id)] = {
+                "name": p.name,
+                "prev_price": raw_price if raw_price is not None else "-",
+                "prev_qty": raw_qty if raw_qty is not None else "-",
+                "send_price": send_price,
+                "send_qty": send_qty,
+                "price": p.price,
+                "quantity": p.quantity,
+                "raw_obj": raw_obj,
+            }
 
-            _update_raw_after_push(session, p.wc_id, raw_obj, send_price, send_qty)
-            raw_dirty = True
+            if len(batch_updates) >= batch_size:
+                flush_batch()
         except Exception as e:
             # jei 404 - WC pusėje nėra tokio ID, tiesiog praleidžiam nekeičiant DB
             if hasattr(e, "response") and getattr(e.response, "status_code", None) == 404:
@@ -197,6 +290,7 @@ def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
                 continue
             print(f"Klaida WC atnaujinant {p.name}: {e}")
 
+    flush_batch()
     if raw_dirty:
         session.commit()
 

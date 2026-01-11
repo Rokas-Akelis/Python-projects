@@ -48,3 +48,12 @@ class WooClient:
             return None
 
         return self.update_product(wc_id, payload)
+
+    def update_products_batch(self, updates: list[dict]):
+        if not updates:
+            return None
+        url = urljoin(self.base_url, "wp-json/wc/v3/products/batch")
+        payload = {"update": updates}
+        resp = requests.post(url, auth=self.auth, json=payload)
+        resp.raise_for_status()
+        return resp.json()
