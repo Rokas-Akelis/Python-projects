@@ -105,6 +105,13 @@ def to_float(val, default=None):
         return default
 
 
+def pick_first_column(df, candidates):
+    for col in candidates:
+        if col in df.columns:
+            return col
+    return None
+
+
 def apply_theme():
     st.markdown(
         """
@@ -341,49 +348,103 @@ def main():
 
     st.markdown("---")
     st.markdown('<div class="section-title">Duomenu perziura</div>', unsafe_allow_html=True)
-    st.markdown("#### Esminiai duomenys")
-    products_df = load_products_df(session)
-    if products_df.empty:
-        st.info("DB tuscia. Importuok WC CSV arba WC API.")
+    st.markdown("#### WC CSV pilna lentele")
+    raw_df = load_wc_raw_df(session)
+    if raw_df.empty:
+        st.info("WC zali duomenys negauti. Importuok WC CSV arba WC API.")
     else:
-        edited_products = st.data_editor(
-            products_df,
+        name_col = pick_first_column(raw_df, ["Pavadinimas", "name"])
+        price_col = pick_first_column(raw_df, ["Reguliari kaina", "regular_price", "Kaina"])
+        qty_col = pick_first_column(raw_df, ["Atsargos", "stock_quantity"])
+        comment_col = pick_first_column(raw_df, ["Komentaras", "Komentarai", "Pastaba", "Pastabos", "comment", "notes"])
+        if comment_col is None:
+            comment_col = "Komentaras"
+            raw_df[comment_col] = None
+
+        editable_cols = [col for col in [name_col, price_col, qty_col, comment_col] if col]
+        disabled_cols = [col for col in raw_df.columns if col not in editable_cols]
+
+        edited_raw = st.data_editor(
+            raw_df,
             num_rows="fixed",
             hide_index=True,
-            disabled=["WC_ID", "Pavadinimas"],
+            disabled=disabled_cols,
             width="stretch",
         )
 
-        backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_products")
-        if st.button("Issaugoti kainu/kiekiu pakeitimus"):
+        backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_raw")
+        if st.button("Issaugoti WC CSV pakeitimus"):
             if backup_on_save:
                 try:
-                    create_backup(label="before_products_save")
+                    create_backup(label="before_raw_save")
                 except Exception as e:
                     st.error(f"Nepavyko sukurti kopijos: {e}")
                     st.stop()
 
-            for product_id, row in edited_products.iterrows():
-                product = session.query(Product).filter(Product.id == product_id).one_or_none()
-                if not product:
+            raw_rows = session.query(WcProductRaw).all()
+            raw_by_wc = {r.wc_id: r for r in raw_rows if r.wc_id}
+            products = session.query(Product).all()
+            products_by_wc = {p.wc_id: p for p in products if p.wc_id}
+
+            for _, row in edited_raw.iterrows():
+                wc_id = to_int(row.get("wc_id"))
+                if not wc_id:
                     continue
-                price = to_float(row.get("Kaina"))
-                qty = to_int(row.get("Kiekis"))
-                if price is not None:
-                    product.price = price
-                if qty is not None:
-                    old_qty = product.quantity or 0
-                    if qty != old_qty:
-                        session.add(Movement(
-                            product_id=product.id,
-                            change=qty - old_qty,
-                            source="products_ui",
-                            note="Pakeista per esminiu duomenu lentele",
-                        ))
-                    product.quantity = qty
+                raw_obj = raw_by_wc.get(wc_id)
+                if raw_obj is None:
+                    raw_obj = WcProductRaw(wc_id=wc_id, raw={})
+                    session.add(raw_obj)
+                    raw_by_wc[wc_id] = raw_obj
+                raw = raw_obj.raw if isinstance(raw_obj.raw, dict) else {}
+
+                if name_col and name_col in row:
+                    name_val = row.get(name_col)
+                    if pd.isna(name_val):
+                        name_val = None
+                    if isinstance(name_val, str):
+                        name_val = name_val.strip() or None
+                    raw[name_col] = name_val
+                    product = products_by_wc.get(wc_id)
+                    if product and name_val:
+                        product.name = str(name_val)
+
+                if price_col and price_col in row:
+                    price_val = to_float(row.get(price_col))
+                    if price_val is not None:
+                        raw[price_col] = str(price_val) if price_col == "regular_price" else price_val
+                        product = products_by_wc.get(wc_id)
+                        if product:
+                            product.price = price_val
+                    else:
+                        raw[price_col] = None
+
+                if qty_col and qty_col in row:
+                    qty_val = to_int(row.get(qty_col))
+                    raw[qty_col] = qty_val
+                    product = products_by_wc.get(wc_id)
+                    if product and qty_val is not None:
+                        old_qty = product.quantity or 0
+                        if qty_val != old_qty:
+                            session.add(Movement(
+                                product_id=product.id,
+                                change=qty_val - old_qty,
+                                source="raw_csv_ui",
+                                note="Pakeista per raw CSV lentele",
+                            ))
+                        product.quantity = qty_val
+
+                if comment_col and comment_col in row:
+                    comment_val = row.get(comment_col)
+                    if pd.isna(comment_val):
+                        comment_val = None
+                    if isinstance(comment_val, str):
+                        comment_val = comment_val.strip() or None
+                    raw[comment_col] = comment_val
+
+                raw_obj.raw = raw
 
             session.commit()
-            st.success("Kainu/kiekiu pakeitimai issaugoti.")
+            st.success("WC CSV pakeitimai issaugoti.")
 
     st.markdown("---")
 
