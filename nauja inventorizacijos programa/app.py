@@ -122,7 +122,11 @@ def apply_theme():
 
         html, body, [class*="css"] {
           font-family: "Candara", "Tahoma", sans-serif;
-          color: var(--text);
+          color: #000000;
+        }
+
+        .stApp, .stApp * {
+          color: #000000;
         }
 
         .stApp {
@@ -147,6 +151,7 @@ def apply_theme():
         h1, h2, h3 {
           font-family: "Palatino Linotype", "Book Antiqua", serif;
           letter-spacing: 0.02em;
+          color: #000000;
         }
 
         .hero {
@@ -169,7 +174,7 @@ def apply_theme():
         }
 
         .hero-subtitle {
-          color: var(--muted);
+          color: #000000;
         }
 
         .hero-badges {
@@ -183,7 +188,7 @@ def apply_theme():
           border-radius: 999px;
           border: 1px solid var(--border);
           background: var(--surface-2);
-          color: var(--muted);
+          color: #000000;
           font-size: 0.8rem;
           text-transform: uppercase;
           letter-spacing: 0.08em;
@@ -193,7 +198,7 @@ def apply_theme():
           font-size: 0.8rem;
           text-transform: uppercase;
           letter-spacing: 0.14em;
-          color: var(--muted);
+          color: #000000;
           margin: 0.2rem 0 0.6rem;
         }
 
@@ -222,6 +227,7 @@ def apply_theme():
           border: 1px solid var(--border);
           border-radius: 12px;
           padding: 0.6rem 0.8rem;
+          color: #000000;
         }
 
         div[data-testid="stDataFrame"],
