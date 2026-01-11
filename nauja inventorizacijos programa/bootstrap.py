@@ -1,13 +1,13 @@
 ﻿# bootstrap_import.py
-import os
 import pandas as pd
+from io import BytesIO
 from pathlib import Path
 from models import get_session, Product, Movement, WcProductRaw
 from backup_utils import create_backup
 
 BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
-# WC CSV kelias (naudosim ji demo importui)
+# WC CSV kelias (naudojamas, jei nepaduotas kitas)
 WC_CSV_PATH = DATA_DIR / "wc-product-export-16-11-2025-1763321789168.csv"
 
 
@@ -44,7 +44,14 @@ def clean_row_dict(row: pd.Series) -> dict:
     return out
 
 
-def sync_wc_csv_merge():
+def _load_wc_csv_df(csv_path: str | Path | None = None, csv_bytes: bytes | None = None) -> pd.DataFrame:
+    if csv_bytes is not None:
+        return pd.read_csv(BytesIO(csv_bytes))
+    path = Path(csv_path) if csv_path else WC_CSV_PATH
+    return pd.read_csv(path)
+
+
+def merge_wc_csv(csv_path: str | Path | None = None, csv_bytes: bytes | None = None):
     """
     Nedestruktyvus importas: perskaitome WC CSV ir atnaujiname esamus produktus arba pridedame naujus.
     - Niekas neištrinamas.
@@ -56,8 +63,12 @@ def sync_wc_csv_merge():
 
     session = get_session()
 
-    wc_df = pd.read_csv(WC_CSV_PATH)
+    wc_df = _load_wc_csv_df(csv_path=csv_path, csv_bytes=csv_bytes)
     name_col = "Pavadinimas"
+    required_cols = {"ID", name_col}
+    missing = required_cols - set(wc_df.columns)
+    if missing:
+        raise ValueError(f"CSV truksta stulpeliu: {', '.join(sorted(missing))}")
     wc_df["norm_name"] = wc_df[name_col].apply(normalize_name)
 
     # Map esamu produktu pagal wc_id ir norm_name
@@ -98,8 +109,15 @@ def sync_wc_csv_merge():
                 active=active,
             )
             session.add(product)
+            if wc_id:
+                by_wc_id[wc_id] = product
+            if norm:
+                by_norm_name[norm] = product
             total_new += 1
         else:
+            if not product.wc_id and wc_id:
+                product.wc_id = wc_id
+                by_wc_id[wc_id] = product
             # atnaujinam laukai tik jei CSV turi reikšmę
             if isinstance(name, str) and name.strip():
                 product.name = name.strip()
@@ -118,6 +136,8 @@ def sync_wc_csv_merge():
                     ))
                 product.quantity = quantity
             product.active = active
+            if norm:
+                by_norm_name[norm] = product
             total_upd += 1
 
         # upsert raw
@@ -131,7 +151,8 @@ def sync_wc_csv_merge():
 
     session.commit()
     print(f"OK. CSV sujungtas. Nauju: {total_new}, atnaujinta: {total_upd}")
+    return {"new": total_new, "updated": total_upd}
 
 
 if __name__ == "__main__":
-    sync_wc_csv_merge()
+    merge_wc_csv()

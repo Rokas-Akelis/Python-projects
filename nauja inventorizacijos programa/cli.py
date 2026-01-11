@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from backup_utils import create_backup
-from bootstrap import sync_wc_csv_merge
+from bootstrap import merge_wc_csv
 from sync_to_wc import pull_products_from_wc, sync_prices_and_stock_to_wc
 
 
@@ -13,7 +13,11 @@ def main(argv=None):
     parser.add_argument(
         "--merge-csv",
         action="store_true",
-        help="Perskaityti WC CSV (data/...) ir nedestruktyviai sujungti su DB.",
+        help="Perskaityti WC CSV ir nedestruktyviai sujungti su DB.",
+    )
+    parser.add_argument(
+        "--csv-path",
+        help="Kelias i WC CSV faila (naudojama su --merge-csv).",
     )
     parser.add_argument(
         "--pull-wc",
@@ -35,10 +39,13 @@ def main(argv=None):
 
     if args.backup:
         path = create_backup(label="manual_cli")
-        print(f"Atsargine kopija sukurta: {path}")
+        if path is None:
+            print("DB dar nesukurta - kopija nesukurta.")
+        else:
+            print(f"Atsargine kopija sukurta: {path}")
 
     if args.merge_csv:
-        sync_wc_csv_merge()
+        merge_wc_csv(csv_path=args.csv_path)
 
     if args.pull_wc:
         pull_products_from_wc()

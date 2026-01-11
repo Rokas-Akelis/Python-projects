@@ -8,6 +8,7 @@ import numpy as np
 from models import get_session, Product, Movement, WcProductRaw
 from movement_utils import record_movement
 from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc  # naudosim jau tureta funkcija.
+from bootstrap import merge_wc_csv
 from backup_utils import create_backup, DB_PATH
 
 
@@ -140,14 +141,32 @@ def main():
     if st.button("Sukurti DB atsargine kopija"):
         try:
             backup_path = create_backup(label="manual")
-            st.success(f"Atsargine kopija sukurta: {backup_path.name}")
+            if backup_path is None:
+                st.warning("DB dar nesukurta - kopija nesukurta.")
+            else:
+                st.success(f"Atsargine kopija sukurta: {backup_path.name}")
         except Exception as e:
             st.error(f"Nepavyko sukurti kopijos: {e}")
+
+    st.subheader("WC CSV importas")
+    csv_upload = st.file_uploader("Pasirink WC CSV faila", type=["csv"])
+    csv_path = st.text_input("Arba WC CSV kelias (lokaliai)", value="")
+    if st.button("Importuoti WC CSV"):
+        if csv_upload is None and not csv_path.strip():
+            st.warning("Pasirink CSV faila arba nurodyk kelia.")
+        else:
+            try:
+                csv_bytes = csv_upload.getvalue() if csv_upload is not None else None
+                result = merge_wc_csv(csv_path=csv_path.strip() or None, csv_bytes=csv_bytes)
+                st.success(f"CSV importas baigtas. Nauju: {result['new']}, atnaujinta: {result['updated']}.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"CSV importo klaida: {e}")
 
     st.subheader("WC CSV pilna lentele")
     raw_df = load_wc_raw_df(session)
     if raw_df.empty:
-        st.info("WC zali duomenys negauti. Paleisk bootstrap arba WC importa.")
+        st.info("WC zali duomenys negauti. Importuok WC CSV arba WC API.")
         return
 
     edited_raw = st.data_editor(

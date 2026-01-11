@@ -12,12 +12,14 @@ def ensure_backup_dir() -> Path:
     return BACKUP_DIR
 
 
-def create_backup(label: str = "") -> Path:
+def create_backup(label: str = "") -> Path | None:
     """
     Sukuria DB kopiją backups/ kataloge.
-    Grąžina sukurtos kopijos kelią.
+    Grąžina sukurtos kopijos kelią, arba None jei DB dar nesukurta.
     """
     ensure_backup_dir()
+    if not DB_PATH.exists():
+        return None
     timestamp = time.strftime("%Y%m%d-%H%M%S")
     suffix = f"-{label}" if label else ""
     target = BACKUP_DIR / f"inventory{suffix}-{timestamp}.bak"
