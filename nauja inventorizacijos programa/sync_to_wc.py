@@ -47,6 +47,70 @@ def _wc_id_allowed(wc_id, allowed_ids: set[int]) -> bool:
         return False
 
 
+def _to_float(val):
+    try:
+        if val in ("", None):
+            return None
+        return float(val)
+    except Exception:
+        return None
+
+
+def _to_int(val):
+    try:
+        if val in ("", None):
+            return None
+        return int(val)
+    except Exception:
+        try:
+            return int(float(val))
+        except Exception:
+            return None
+
+
+def _extract_raw_price_qty(raw):
+    if not isinstance(raw, dict):
+        return None, None, None
+    raw_type = raw.get("type") or raw.get("Tipas")
+
+    price = raw.get("regular_price")
+    if price is None:
+        price = raw.get("Reguliari kaina")
+    if price is None:
+        price = raw.get("Kaina")
+    price = _to_float(price)
+
+    qty = raw.get("stock_quantity")
+    if qty is None:
+        qty = raw.get("Atsargos")
+    qty = _to_int(qty)
+
+    return price, qty, raw_type
+
+
+def _update_raw_after_push(session, wc_id, raw_obj, price, quantity):
+    raw = raw_obj.raw if raw_obj and isinstance(raw_obj.raw, dict) else {}
+    if not raw:
+        raw = {"id": wc_id}
+
+    if price is not None:
+        if "regular_price" in raw or "Reguliari kaina" not in raw:
+            raw["regular_price"] = str(price)
+        if "Reguliari kaina" in raw:
+            raw["Reguliari kaina"] = price
+
+    if quantity is not None:
+        if "stock_quantity" in raw or "Atsargos" not in raw:
+            raw["stock_quantity"] = int(quantity)
+        if "Atsargos" in raw:
+            raw["Atsargos"] = int(quantity)
+
+    if raw_obj:
+        raw_obj.raw = raw
+    else:
+        session.add(WcProductRaw(wc_id=wc_id, raw=raw))
+
+
 def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
     session = get_session()
 
@@ -59,6 +123,7 @@ def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
         print(f"Filtras aktyvus (WC_SYNC_IDS): {sorted(allowed_ids)}")
 
     products = session.query(Product).filter(Product.active == True).all()
+    raw_dirty = False
 
     for p in products:
         if not p.wc_id:
@@ -67,46 +132,73 @@ def sync_prices_and_stock_to_wc(allowed_wc_ids=None):
             continue
 
         try:
-            current = None
-            try:
-                current = woo.get_product(p.wc_id)
-            except Exception as e_get:
-                print(f"WC ID={p.wc_id}: nepavyko perskaityti esamo produkto ({e_get}), bandome vis tiek atnaujinti.")
+            raw_obj = session.query(WcProductRaw).filter(WcProductRaw.wc_id == p.wc_id).one_or_none()
+            raw_price, raw_qty, raw_type = _extract_raw_price_qty(raw_obj.raw if raw_obj else None)
 
-            wc_type = current.get("type") if isinstance(current, dict) else None
+            price_changed = p.price is not None and (raw_price is None or abs(p.price - raw_price) > 0.0001)
+            qty_changed = p.quantity is not None and (raw_qty is None or int(p.quantity) != raw_qty)
+
+            if not price_changed and not qty_changed:
+                print(f"WC ID={p.wc_id}: nera pokyciu (price={p.price}, qty={p.quantity}).")
+                continue
+
+            wc_type = raw_type
+            current = None
+            if wc_type is None:
+                try:
+                    current = woo.get_product(p.wc_id)
+                except Exception as e_get:
+                    print(f"WC ID={p.wc_id}: nepavyko perskaityti esamo produkto ({e_get}), bandome vis tiek atnaujinti.")
+                if isinstance(current, dict):
+                    wc_type = current.get("type")
+                    if raw_price is None:
+                        raw_price = _to_float(current.get("regular_price"))
+                    if raw_qty is None:
+                        raw_qty = _to_int(current.get("stock_quantity"))
+                    price_changed = p.price is not None and (
+                        raw_price is None or abs(p.price - raw_price) > 0.0001
+                    )
+                    qty_changed = p.quantity is not None and (
+                        raw_qty is None or int(p.quantity) != raw_qty
+                    )
+                    if not price_changed and not qty_changed:
+                        print(f"WC ID={p.wc_id}: nera pokyciu (price={p.price}, qty={p.quantity}).")
+                        continue
+
             if wc_type and wc_type not in {"simple"}:
                 print(f"WC ID={p.wc_id}: type={wc_type} nepalaikomas (variacija/variable). Šiuo metu neatnaujinama.")
                 continue
 
-            current_price = None
-            current_qty = None
-            if isinstance(current, dict):
-                current_price = current.get("regular_price")
-                try:
-                    current_price = float(current_price) if current_price not in ("", None) else None
-                except Exception:
-                    current_price = None
-                current_qty = current.get("stock_quantity")
-                try:
-                    current_qty = int(current_qty) if current_qty is not None else None
-                except Exception:
-                    current_qty = None
+            send_price = p.price if price_changed else None
+            send_qty = p.quantity if qty_changed else None
+            if send_price is None and send_qty is None:
+                continue
 
             woo.update_price_and_stock(
                 wc_id=p.wc_id,
-                price=p.price,
-                quantity=p.quantity,
+                price=send_price,
+                quantity=send_qty,
             )
+
+            prev_price = raw_price if raw_price is not None else "-"
+            prev_qty = raw_qty if raw_qty is not None else "-"
             print(
                 f"OK. WC_ID={p.wc_id} ({p.name})"
-                f" price {current_price}->{p.price}, qty {current_qty}->{p.quantity}"
+                f" price {prev_price}->{p.price if send_price is not None else prev_price},"
+                f" qty {prev_qty}->{p.quantity if send_qty is not None else prev_qty}"
             )
+
+            _update_raw_after_push(session, p.wc_id, raw_obj, send_price, send_qty)
+            raw_dirty = True
         except Exception as e:
             # jei 404 - WC pusėje nėra tokio ID, tiesiog praleidžiam nekeičiant DB
             if hasattr(e, "response") and getattr(e.response, "status_code", None) == 404:
                 print(f"WC ID={p.wc_id} nerastas (404). Praleidžiama, DB neliečiama: {p.name}")
                 continue
             print(f"Klaida WC atnaujinant {p.name}: {e}")
+
+    if raw_dirty:
+        session.commit()
 
 
 def pull_products_from_wc():
