@@ -103,8 +103,130 @@ def to_float(val, default=None):
         return default
 
 
+def apply_theme():
+    st.markdown(
+        """
+        <style>
+        :root {
+          --bg: #f4efe6;
+          --bg-2: #e9e1d5;
+          --surface: #ffffff;
+          --surface-2: #f8f4ee;
+          --text: #1b1b1b;
+          --muted: #5f5b52;
+          --accent: #0f766e;
+          --accent-2: #d97706;
+          --border: rgba(27,27,27,0.12);
+          --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+          --radius: 14px;
+        }
+
+        html, body, [class*="css"] {
+          font-family: "Trebuchet MS", "Verdana", sans-serif;
+          color: var(--text);
+        }
+
+        .stApp {
+          background:
+            radial-gradient(1200px circle at 10% -10%, #fff7e6 0%, transparent 60%),
+            radial-gradient(900px circle at 90% 0%, #e8f4f1 0%, transparent 55%),
+            linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+        }
+
+        .block-container {
+          padding-top: 2.5rem;
+          max-width: 1200px;
+        }
+
+        h1, h2, h3 {
+          font-family: "Georgia", "Times New Roman", serif;
+          letter-spacing: 0.02em;
+        }
+
+        h1 { font-size: 2.4rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.1rem; color: var(--muted); }
+
+        .hero {
+          background: linear-gradient(135deg, #ffffff 0%, #f8f1e6 100%);
+          border: 1px solid var(--border);
+          border-radius: 18px;
+          padding: 1.6rem 1.8rem;
+          box-shadow: var(--shadow);
+          margin-bottom: 1.2rem;
+          animation: fadeInUp 500ms ease-out;
+        }
+
+        .hero-title {
+          font-size: 2rem;
+          font-family: "Georgia", "Times New Roman", serif;
+          margin-bottom: 0.2rem;
+        }
+
+        .hero-subtitle {
+          color: var(--muted);
+        }
+
+        .stButton button {
+          background: linear-gradient(135deg, var(--accent), #0f5a52);
+          color: #fff;
+          border: none;
+          padding: 0.55rem 1rem;
+          border-radius: 999px;
+          box-shadow: 0 8px 18px rgba(15, 118, 110, 0.25);
+          transition: transform 120ms ease, box-shadow 120ms ease;
+        }
+
+        .stButton button:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 12px 22px rgba(15, 118, 110, 0.3);
+        }
+
+        .stButton button:active { transform: translateY(0); }
+
+        div[data-testid="stTextInput"] input,
+        div[data-testid="stFileUploader"] input,
+        div[data-testid="stTextArea"] textarea,
+        div[data-testid="stSelectbox"] select {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 0.55rem 0.75rem;
+        }
+
+        div[data-testid="stDataFrame"],
+        div[data-testid="stDataEditor"] {
+          border-radius: var(--radius);
+          border: 1px solid var(--border);
+          background: var(--surface);
+          box-shadow: var(--shadow);
+        }
+
+        hr {
+          border: none;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, var(--border), transparent);
+        }
+
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 640px) {
+          .block-container { padding-top: 1.2rem; }
+          h1 { font-size: 2rem; }
+          .hero { padding: 1.2rem; }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main():
     st.set_page_config(page_title="Inventorizacijos sistema", layout="wide")
+    apply_theme()
 
     # Paprasta slaptazodzio apsauga (env var ADMIN_PASSWORD)
     admin_password = os.getenv("ADMIN_PASSWORD", "")
@@ -133,7 +255,15 @@ def main():
             st.session_state.authed = False
             st.rerun()
 
-    st.title("Inventorizacijos valdymas")
+    st.markdown(
+        """
+        <div class="hero">
+          <div class="hero-title">Inventorizacijos valdymas</div>
+          <div class="hero-subtitle">Pilna WC CSV perziura, redagavimas ir sinchronizacija vienoje vietoje.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     session = get_session()
 
