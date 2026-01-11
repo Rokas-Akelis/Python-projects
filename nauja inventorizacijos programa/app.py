@@ -129,8 +129,8 @@ def apply_theme():
           background:
             repeating-linear-gradient(
               135deg,
-              rgba(15, 23, 42, 0.03) 0px,
-              rgba(15, 23, 42, 0.03) 2px,
+              rgba(0, 0, 0, 0.08) 0px,
+              rgba(0, 0, 0, 0.08) 2px,
               transparent 2px,
               transparent 10px
             ),
@@ -265,7 +265,7 @@ def main():
         st.session_state.auth_pwd = admin_password
 
     if not st.session_state.get("authed"):
-        pwd = st.text_input("Slaptazodis", type="password")
+        pwd = st.text_input("Slaptazodis", type="default")
         if st.button("Prisijungti"):
             if pwd == admin_password:
                 st.session_state.authed = True
