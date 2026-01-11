@@ -9,7 +9,7 @@ from models import get_session, Product, Movement, WcProductRaw
 from movement_utils import record_movement
 from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc  # naudosim jau tureta funkcija.
 from bootstrap import merge_wc_csv
-from backup_utils import create_backup, DB_PATH
+from backup_utils import create_backup, get_db_path, get_backup_dir
 
 
 def load_products_df(session):
@@ -319,6 +319,10 @@ def main():
     with col_left:
         st.markdown("#### Atsargines kopijos")
         st.caption("Rekomenduojama pries importa ar didesnius pakeitimus.")
+        db_path = get_db_path()
+        backup_dir = get_backup_dir(db_path)
+        st.caption(f"DB kelias: {db_path} ({'yra' if db_path.exists() else 'nera'})")
+        st.caption(f"Backup aplankas: {backup_dir}")
         if st.button("Sukurti DB atsargine kopija"):
             try:
                 backup_path = create_backup(label="manual")

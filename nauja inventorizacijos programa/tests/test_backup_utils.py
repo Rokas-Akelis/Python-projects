@@ -16,22 +16,19 @@ class TestBackupUtils(unittest.TestCase):
             db_path.write_text("data1")
             backup_dir = tmp_path / "backups"
 
-            with patch.object(backup_utils, "DB_PATH", db_path), patch.object(
-                backup_utils, "BACKUP_DIR", backup_dir
-            ):
-                first = backup_utils.create_backup(label="t1")
-                latest = backup_dir / "inventory-latest.bak"
-                prev = backup_dir / "inventory-prev.bak"
+            first = backup_utils.create_backup(label="t1", db_path=db_path, backup_dir=backup_dir)
+            latest = backup_dir / "inventory-latest.bak"
+            prev = backup_dir / "inventory-prev.bak"
 
-                self.assertTrue(first.exists())
-                self.assertTrue(latest.exists())
-                self.assertFalse(prev.exists())
+            self.assertTrue(first.exists())
+            self.assertTrue(latest.exists())
+            self.assertFalse(prev.exists())
 
-                db_path.write_text("data2")
-                second = backup_utils.create_backup(label="t2")
+            db_path.write_text("data2")
+            second = backup_utils.create_backup(label="t2", db_path=db_path, backup_dir=backup_dir)
 
-                self.assertTrue(second.exists())
-                self.assertTrue(latest.exists())
-                self.assertTrue(prev.exists())
-                self.assertEqual(latest.read_text(), "data2")
-                self.assertEqual(prev.read_text(), "data1")
+            self.assertTrue(second.exists())
+            self.assertTrue(latest.exists())
+            self.assertTrue(prev.exists())
+            self.assertEqual(latest.read_text(), "data2")
+            self.assertEqual(prev.read_text(), "data1")
