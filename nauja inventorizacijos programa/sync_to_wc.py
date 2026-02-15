@@ -1,4 +1,4 @@
-﻿# sync_to_wc.py
+# sync_to_wc.py
 import os
 from models import get_session, Product, Movement, WcProductRaw
 from woo_client import WooClient
