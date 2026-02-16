@@ -647,7 +647,16 @@ def main():
                         elif updated == 0:
                             st.warning("WC nepatvirtino pakeitimu arba nebuvo ka siusti.")
                         else:
-                            st.session_state["flash_msg"] = "OK. Sinchronizacija su WooCommerce baigta."
+                            try:
+                                pull_products_from_wc()
+                                st.session_state["flash_msg"] = (
+                                    "OK. Sinchronizacija baigta, duomenys atnaujinti is WC."
+                                )
+                            except Exception as e_pull:
+                                st.session_state["flash_msg"] = (
+                                    "OK. Sinchronizacija baigta, bet WC importas nepavyko: "
+                                    f"{e_pull}"
+                                )
                             st.session_state["wc_editor_version"] += 1
                             try:
                                 session.close()
@@ -698,9 +707,6 @@ def main():
         '<p>Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</p>',
         unsafe_allow_html=True,
     )
-    if st.button("Atnaujinti lentele", key="btn_refresh_table"):
-        st.session_state["wc_editor_version"] += 1
-        st.rerun()
     edit_df = load_wc_edit_df(session)
     if edit_df.empty:
         st.info("WC duomenys negauti. Pirma importuok is WC API.")
