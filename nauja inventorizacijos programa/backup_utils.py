@@ -8,7 +8,7 @@ from models import get_default_db_path
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = get_default_db_path()
-BACKUP_ROOT = BASE_DIR / "backups"
+BACKUP_ROOT = BASE_DIR / "backup"
 
 
 def get_db_path() -> Path:
@@ -23,6 +23,10 @@ def _resolve_backup_dir(db_path: Path | None = None) -> Path:
     if env_dir:
         return Path(env_dir)
     base_dir = BACKUP_ROOT
+    try:
+        base_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
     if not os.access(base_dir, os.W_OK):
         db_path = db_path or get_db_path()
         base_dir = db_path.parent
@@ -46,8 +50,8 @@ def ensure_backup_dir(db_path: Path | None = None) -> Path:
 
 def create_backup(label: str = "", db_path: Path | None = None, backup_dir: Path | None = None) -> Path | None:
     """
-    Sukuria DB kopiją backups/ kataloge.
-    Grąžina sukurtos kopijos kelią, arba None jei DB dar nesukurta.
+    Sukuria DB kopija backup/ kataloge.
+    Grazina sukurtos kopijos kelia, arba None jei DB dar nesukurta.
     """
     db_path = db_path or get_db_path()
     backup_dir = backup_dir or ensure_backup_dir(db_path)

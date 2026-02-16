@@ -513,8 +513,8 @@ def main():
     else:
         pass
 
-    session = get_session()
     db_path = get_db_path()
+    session = get_session(db_path)
     backup_dir = get_backup_dir(db_path)
     backups = list_backups(db_path)
     pending_count = session.query(WcProductEdit).count()

@@ -1,7 +1,6 @@
 ﻿# models.py
 from pathlib import Path
 import os
-import tempfile
 from sqlalchemy import (
     Column,
     Integer,
@@ -19,21 +18,12 @@ BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "backup" / "inventory.db"
 
 
-def _is_writable_path(path: Path) -> bool:
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-    except OSError:
-        return False
-    return os.access(path.parent, os.W_OK)
-
-
 def get_default_db_path() -> Path:
     env_path = os.getenv("INVENTORY_DB_PATH")
     if env_path:
         return Path(env_path)
-    if _is_writable_path(DB_PATH):
-        return DB_PATH
-    return Path(tempfile.gettempdir()) / "inventory.db"
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    return DB_PATH
 
 
 class Product(Base):
