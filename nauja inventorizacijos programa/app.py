@@ -269,23 +269,23 @@ def apply_theme():
     st.markdown(
         """
         <style>
-        @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Sora:wght@300;400;500;600;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Serif+4:wght@500;600;700&display=swap");
 
         :root {
-          --bg: #f4f2ee;
-          --surface: #fcfcfb;
-          --surface-2: #f2f0ec;
+          --bg: #f5f3ef;
+          --surface: #fdfdfc;
+          --surface-2: #f2efea;
           --text: #111111;
-          --muted: #5a5957;
-          --accent: #121212;
+          --muted: #5f5b56;
+          --accent: #111827;
           --accent-2: #0f766e;
           --border: rgba(17, 17, 17, 0.12);
-          --shadow: 0 20px 50px rgba(17, 17, 17, 0.12);
+          --shadow: 0 22px 60px rgba(15, 15, 15, 0.12);
           --radius: 22px;
         }
 
         html, body, [class*="css"] {
-          font-family: "Sora", "Segoe UI", "Calibri", sans-serif;
+          font-family: "Space Grotesk", "Segoe UI", "Calibri", sans-serif;
           color: var(--text);
         }
 
@@ -297,92 +297,95 @@ def apply_theme():
           background:
             radial-gradient(900px circle at 90% 5%, rgba(15, 118, 110, 0.12), transparent 60%),
             radial-gradient(700px circle at 8% 0%, rgba(17, 17, 17, 0.08), transparent 55%),
-            linear-gradient(180deg, #f8f7f4 0%, var(--bg) 100%);
+            linear-gradient(180deg, #f9f7f4 0%, var(--bg) 100%);
         }
 
         .block-container {
-          padding-top: 2.4rem;
+          padding-top: 2.2rem;
           max-width: 1320px;
         }
 
-        h1, h2, h3, .hero-title {
-          font-family: "Cormorant Garamond", "Times New Roman", serif;
+        h1, h2, h3, .brand-title {
+          font-family: "Source Serif 4", "Times New Roman", serif;
           letter-spacing: 0.01em;
         }
 
-        .app-shell {
-          display: grid;
-          grid-template-columns: minmax(280px, 320px) 1fr;
-          gap: 1.6rem;
-        }
-
-        .panel {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          padding: 1.4rem 1.6rem;
-          box-shadow: var(--shadow);
-        }
-
-        .panel-title {
-          font-size: 0.85rem;
-          text-transform: uppercase;
-          letter-spacing: 0.18em;
-          color: var(--muted);
-          margin-bottom: 0.75rem;
-        }
-
-        .hero {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          gap: 1.2rem;
-          align-items: center;
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: 28px;
-          padding: 2rem 2.2rem;
-          box-shadow: var(--shadow);
-        }
-
-        .hero-title {
-          font-size: 2.3rem;
-          margin-bottom: 0.3rem;
-        }
-
-        .hero-subtitle {
-          color: var(--muted);
-          max-width: 580px;
-        }
-
-        .hero-badges {
+        .topbar {
           display: flex;
-          gap: 0.6rem;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 24px;
+          padding: 1.6rem 1.8rem;
+          box-shadow: var(--shadow);
+          margin-bottom: 1.4rem;
+        }
+
+        .brand-title {
+          font-size: 2rem;
+          margin-bottom: 0.2rem;
+        }
+
+        .brand-subtitle {
+          color: var(--muted);
+          max-width: 640px;
+        }
+
+        .status-row {
+          display: flex;
           flex-wrap: wrap;
+          gap: 0.5rem;
           justify-content: flex-end;
         }
 
-        .badge {
-          padding: 0.4rem 0.9rem;
+        .pill {
+          padding: 0.35rem 0.8rem;
           border-radius: 999px;
-          border: 1px solid rgba(21, 21, 21, 0.14);
+          border: 1px solid rgba(17, 17, 17, 0.14);
           background: var(--surface-2);
-          color: var(--accent);
-          font-size: 0.7rem;
+          font-size: 0.72rem;
           text-transform: uppercase;
           letter-spacing: 0.16em;
         }
 
         .section-title {
-          font-size: 0.8rem;
+          font-size: 0.75rem;
           text-transform: uppercase;
           letter-spacing: 0.2em;
           color: var(--muted);
-          margin: 0.3rem 0 0.7rem;
+          margin: 0.4rem 0 0.8rem;
+        }
+
+        .card-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 1.2rem;
+        }
+
+        .card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1.2rem 1.4rem;
+          box-shadow: var(--shadow);
+        }
+
+        .card-title {
+          font-size: 1.1rem;
+          font-weight: 600;
+          margin-bottom: 0.4rem;
+        }
+
+        .card-meta {
+          color: var(--muted);
+          margin-bottom: 0.9rem;
         }
 
         .stButton button {
-          background: linear-gradient(135deg, var(--accent), #2a2a2a);
-          color: #ffffff;
+          background: linear-gradient(135deg, var(--accent), #1f2937);
+          color: #ffffff !important;
           border: none;
           padding: 0.7rem 1.3rem;
           border-radius: 999px;
@@ -425,9 +428,13 @@ def apply_theme():
         }
 
         @media (max-width: 980px) {
-          .app-shell { grid-template-columns: 1fr; }
-          .hero { grid-template-columns: 1fr; }
-          .hero-badges { justify-content: flex-start; }
+          .topbar {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+          .status-row {
+            justify-content: flex-start;
+          }
         }
         </style>
         """,
@@ -461,62 +468,109 @@ def main():
                 st.error("Neteisingas slaptazodis.")
         st.stop()
     else:
-        st.success("Prisijungta")
-        if st.button("Atsijungti"):
-            st.session_state.authed = False
-            st.rerun()
+        pass
+
+    session = get_session()
+    db_path = get_db_path()
+    backup_dir = get_backup_dir(db_path)
+    backups = list_backups(db_path)
+    pending_count = session.query(WcProductEdit).count()
+    total_products = session.query(WcProductRaw).count()
 
     st.markdown(
-        """
-        <div class="hero">
+        f"""
+        <div class="topbar">
           <div>
-            <div class="hero-title">Inventorizacijos valdymas</div>
-            <div class="hero-subtitle">
-              Aukštos kokybės darbo aplinka WooCommerce prekių priežiūrai. 
-              Sistema sinchronizuoja tik tavo ranka atliktus pakeitimus.
+            <div class="brand-title">Inventorizacijos Studio</div>
+            <div class="brand-subtitle">
+              Moderni WooCommerce prekiu valdymo aplinka. Sistema siuncia tik tavo ranka pakeistus duomenis.
             </div>
           </div>
-          <div class="hero-badges">
-            <span class="badge">WC API</span>
-            <span class="badge">Edit</span>
-            <span class="badge">Backup</span>
+          <div class="status-row">
+            <span class="pill">Produktai: {total_products}</span>
+            <span class="pill">Pakeitimai: {pending_count}</span>
+            <span class="pill">DB: {"YRA" if db_path.exists() else "NERA"}</span>
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    session = get_session()
+    _, logout_col = st.columns([6, 1])
+    with logout_col:
+        if st.button("Atsijungti", key="logout_btn"):
+            st.session_state.authed = False
+            st.rerun()
 
-    st.markdown('<div class="section-title">Pagrindiniai veiksmai</div>', unsafe_allow_html=True)
-    st.markdown('<div class="app-shell">', unsafe_allow_html=True)
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown('<div class="panel-title">Saugumas</div>', unsafe_allow_html=True)
-    st.markdown("#### Atsargines kopijos")
-    st.caption("Rekomenduojama pries importa ar didesnius pakeitimus.")
-    db_path = get_db_path()
-    backup_dir = get_backup_dir(db_path)
-    st.caption(f"DB kelias: {db_path} ({'yra' if db_path.exists() else 'nera'})")
-    st.caption(f"Backup aplankas: {backup_dir}")
-    if st.button("Sukurti DB atsargine kopija"):
+    st.markdown('<div class="section-title">Veiksmai</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Importuoti is WC</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card-meta">Atsiuncia produktus is WooCommerce API ir paruosia redagavimui.</div>',
+        unsafe_allow_html=True,
+    )
+    confirm_pull = st.checkbox("Patvirtinu importa", value=False, key="confirm_pull_wc_primary")
+    if st.button("Importuoti is WC", key="btn_pull_wc"):
+        if not confirm_pull:
+            st.warning("Patvirtink importa checkbox'u.")
+        else:
+            try:
+                pull_products_from_wc()
+                st.success("Importas is WC baigtas.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Importo klaida: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Siusti pakeitimus</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card-meta">Siunciami tik tavo redaguoti laukai. Tuscios reiksmes nesiunciamos.</div>',
+        unsafe_allow_html=True,
+    )
+    sync_ids_text = st.text_input(
+        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
+        value=os.getenv("WC_SYNC_IDS", ""),
+        key="sync_wc_ids",
+    )
+    confirm_push = st.checkbox("Patvirtinu siuntima", value=False, key="confirm_push_wc")
+    if st.button("Sinchronizuoti su svetaine", key="btn_push_wc"):
+        if not confirm_push:
+            st.warning("Patvirtink siuntima checkbox'u.")
+        else:
+            try:
+                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
+                st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
+            except Exception as e:
+                st.error(f"Sinchronizacijos klaida: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">Atsargines kopijos</div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="card-meta">DB kelias: {db_path} | Backup: {backup_dir}</div>',
+        unsafe_allow_html=True,
+    )
+    if st.button("Sukurti DB kopija", key="btn_backup_create"):
         try:
             backup_path = create_backup(label="manual")
             if backup_path is None:
                 st.warning("DB dar nesukurta - kopija nesukurta.")
             else:
                 st.success(f"Atsargine kopija sukurta: {backup_path.name}")
+                st.rerun()
         except Exception as e:
             st.error(f"Nepavyko sukurti kopijos: {e}")
 
-    st.markdown("##### Atkurti is backup")
-    backups = list_backups(db_path)
     if not backups:
         st.caption("Backup failu dar nera.")
     else:
         backup_labels = [b.name for b in backups]
         selected_backup = st.selectbox("Pasirink backup", backup_labels, key="restore_backup_select")
         confirm_restore = st.checkbox("Patvirtinu atkurima", value=False, key="confirm_restore_db")
-        if st.button("Atkurti is backup"):
+        if st.button("Atkurti is backup", key="btn_backup_restore"):
             if not confirm_restore:
                 st.warning("Patvirtink atkurima checkbox'u.")
             else:
@@ -532,28 +586,16 @@ def main():
                     st.error(f"Nepavyko atkurti backup: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown('<div class="panel-title">WC API</div>', unsafe_allow_html=True)
-    st.markdown("#### Importuoti is WC")
-    st.caption("Atsiunčia produktus is WooCommerce API ir paruošia redagavimui.")
-    confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc_primary")
-    if st.button("Importuoti is WC"):
-        if not confirm_pull:
-            st.warning("Patvirtink importa checkbox'u.")
-        else:
-            try:
-                pull_products_from_wc()
-                st.success("Importas is WC baigtas.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Importo klaida: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
-    st.markdown('<div class="section-title">Duomenu perziura</div>', unsafe_allow_html=True)
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown("#### WC lauku redagavimas")
+    st.markdown('<div class="section-title">Redagavimas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
+    st.markdown('<div class="card-title">WC lauku redagavimas</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="card-meta">Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</div>',
+        unsafe_allow_html=True,
+    )
     edit_df = load_wc_edit_df(session)
     if edit_df.empty:
         st.info("WC duomenys negauti. Pirma importuok is WC API.")
@@ -657,32 +699,7 @@ def main():
             st.success(f"WC pakeitimai issaugoti. Laukiantys: {pending_after}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown("---")
 
-    st.markdown("---")
-    st.markdown('<div class="section-title">WC sinchronizavimas</div>', unsafe_allow_html=True)
-    st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown("#### Sinchronizacija i WC")
-    st.write(
-        "Sis mygtukas i WooCommerce issiuncia tik ranka pakeistus laukus is redagavimo lenteles "
-        "(tik toms prekems, kurios buvo importuotos is WC)."
-    )
-    sync_ids_text = st.text_input(
-        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
-        value=os.getenv("WC_SYNC_IDS", ""),
-        key="sync_wc_ids",
-    )
-    confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
-    if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
-        if not confirm_push:
-            st.warning("Patvirtink siuntima checkbox'u.")
-        else:
-            try:
-                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
-                st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
-            except Exception as e:
-                st.error(f"Sinchronizacijos klaida: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
