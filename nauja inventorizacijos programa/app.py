@@ -3,17 +3,28 @@ import streamlit as st
 import pandas as pd
 import os
 import json
+import sys
+import importlib
 import numpy as np
 from datetime import date, datetime
 
 from models import get_session, Product, Movement, WcProductRaw, WcProductEdit
-from sync_to_wc import (
-    sync_prices_and_stock_to_wc,
-    pull_products_from_wc,
-    _normalize_wc_sync_ids,
-)  # naudosim jau tureta funkcija.
 from backup_utils import create_backup, get_db_path, get_backup_dir, list_backups, restore_backup
 from wc_fields import WC_EDIT_FIELDS, get_raw_value
+
+
+def _load_sync_module():
+    try:
+        return importlib.import_module("sync_to_wc")
+    except KeyError:
+        sys.modules.pop("sync_to_wc", None)
+        return importlib.import_module("sync_to_wc")
+
+
+_sync_to_wc = _load_sync_module()
+sync_prices_and_stock_to_wc = _sync_to_wc.sync_prices_and_stock_to_wc
+pull_products_from_wc = _sync_to_wc.pull_products_from_wc
+_normalize_wc_sync_ids = _sync_to_wc._normalize_wc_sync_ids
 
 WC_FIELD_TYPES = {spec["key"]: spec["type"] for spec in WC_EDIT_FIELDS}
 
