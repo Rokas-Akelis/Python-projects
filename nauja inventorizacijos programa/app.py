@@ -7,7 +7,11 @@ import numpy as np
 from datetime import date, datetime
 
 from models import get_session, Product, Movement, WcProductRaw, WcProductEdit
-from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc  # naudosim jau tureta funkcija.
+from sync_to_wc import (
+    sync_prices_and_stock_to_wc,
+    pull_products_from_wc,
+    _normalize_wc_sync_ids,
+)  # naudosim jau tureta funkcija.
 from backup_utils import create_backup, get_db_path, get_backup_dir, list_backups, restore_backup
 from wc_fields import WC_EDIT_FIELDS, get_raw_value
 
@@ -128,6 +132,16 @@ def _normalize_float(val):
     if _is_empty(val):
         return None
     try:
+        if isinstance(val, str):
+            raw = val.strip().replace(" ", "").replace("\u00a0", "")
+            if "," in raw and "." in raw:
+                if raw.rfind(",") > raw.rfind("."):
+                    raw = raw.replace(".", "").replace(",", ".")
+                else:
+                    raw = raw.replace(",", "")
+            elif "," in raw and "." not in raw:
+                raw = raw.replace(",", ".")
+            return float(raw)
         return float(val)
     except Exception:
         return None
@@ -137,6 +151,16 @@ def _normalize_int(val):
     if _is_empty(val):
         return None
     try:
+        if isinstance(val, str):
+            raw = val.strip().replace(" ", "").replace("\u00a0", "")
+            if "," in raw and "." in raw:
+                if raw.rfind(",") > raw.rfind("."):
+                    raw = raw.replace(".", "").replace(",", ".")
+                else:
+                    raw = raw.replace(",", "")
+            elif "," in raw and "." not in raw:
+                raw = raw.replace(",", ".")
+            return int(float(raw))
         return int(float(val))
     except Exception:
         return None
@@ -583,8 +607,20 @@ def main():
                 st.warning("Patvirtink siuntima checkbox'u.")
             else:
                 try:
-                    sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
-                    st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
+                    allowed_ids = _normalize_wc_sync_ids(sync_ids_text)
+                    if allowed_ids:
+                        pending_now = (
+                            session.query(WcProductEdit)
+                            .filter(WcProductEdit.wc_id.in_(allowed_ids))
+                            .count()
+                        )
+                    else:
+                        pending_now = session.query(WcProductEdit).count()
+                    if pending_now == 0:
+                        st.warning("Nera issaugotu pakeitimu siuntimui.")
+                    else:
+                        sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
+                        st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
                 except Exception as e:
                     st.error(f"Sinchronizacijos klaida: {e}")
 
