@@ -541,16 +541,13 @@ def main():
 
     with st.sidebar:
         st.markdown('<div class="section-title">Sesija</div>', unsafe_allow_html=True)
-        st.markdown('<div class="lux-card">', unsafe_allow_html=True)
         st.caption(f"DB: {'yra' if db_path.exists() else 'nera'}")
         if st.button("Atsijungti", key="logout_btn"):
             st.session_state.authed = False
             st.rerun()
-        st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown('<div class="section-title">Operacijos</div>', unsafe_allow_html=True)
 
-        st.markdown('<div class="lux-card">', unsafe_allow_html=True)
         st.markdown('<h4>Importuoti is WC</h4>', unsafe_allow_html=True)
         st.markdown(
             '<p>Atsiuncia produktus is WooCommerce API ir paruosia redagavimui.</p>',
@@ -562,14 +559,12 @@ def main():
                 st.warning("Patvirtink importa checkbox'u.")
             else:
                 try:
-                    pull_products_from_wc()
-                    st.success("Importas is WC baigtas.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Importo klaida: {e}")
-        st.markdown("</div>", unsafe_allow_html=True)
+                pull_products_from_wc()
+                st.success("Importas is WC baigtas.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Importo klaida: {e}")
 
-        st.markdown('<div class="lux-card">', unsafe_allow_html=True)
         st.markdown('<h4>Siusti pakeitimus</h4>', unsafe_allow_html=True)
         st.markdown(
             '<p>Siunciami tik tavo redaguoti laukai. Tuscios reiksmes nesiunciamos.</p>',
@@ -590,9 +585,7 @@ def main():
                     st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
                 except Exception as e:
                     st.error(f"Sinchronizacijos klaida: {e}")
-        st.markdown("</div>", unsafe_allow_html=True)
 
-        st.markdown('<div class="lux-card">', unsafe_allow_html=True)
         st.markdown('<h4>Atsargines kopijos</h4>', unsafe_allow_html=True)
         st.markdown(
             f'<p>DB kelias: {db_path} | Backup: {backup_dir}</p>',
@@ -629,7 +622,6 @@ def main():
                         st.rerun()
                     except Exception as e:
                         st.error(f"Nepavyko atkurti backup: {e}")
-        st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="section-title">Redagavimas</div>', unsafe_allow_html=True)
     st.markdown('<div class="lux-card">', unsafe_allow_html=True)
