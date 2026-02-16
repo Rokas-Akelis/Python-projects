@@ -433,6 +433,30 @@ def apply_theme():
           color: var(--text);
         }
 
+        /* Selectbox dropdown and options */
+        section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+          background: var(--surface) !important;
+          color: var(--text) !important;
+        }
+
+        section[data-testid="stSidebar"] div[data-baseweb="select"] span {
+          color: var(--text) !important;
+        }
+
+        div[role="listbox"] {
+          background: var(--surface) !important;
+          color: var(--text) !important;
+          border: 1px solid var(--border) !important;
+        }
+
+        div[role="option"] {
+          color: var(--text) !important;
+        }
+
+        div[role="option"][aria-selected="true"] {
+          background: var(--surface-2) !important;
+        }
+
         div[data-testid="stDataFrame"],
         div[data-testid="stDataEditor"] {
           border-radius: var(--radius);
