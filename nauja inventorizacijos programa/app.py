@@ -427,6 +427,19 @@ def apply_theme():
           margin: 0 0 0.9rem;
         }
 
+        .wc-editor-marker {
+          display: none;
+        }
+
+        div[data-testid="stVerticalBlock"]:has(.wc-editor-marker) {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1.3rem 1.5rem;
+          box-shadow: var(--shadow);
+          margin-bottom: 1.6rem;
+        }
+
         section[data-testid="stSidebar"] {
           background: #f3ede6;
           border-right: 1px solid var(--border);
@@ -438,6 +451,18 @@ def apply_theme():
 
         section[data-testid="stSidebar"] .lux-card {
           box-shadow: 0 14px 32px rgba(26, 21, 17, 0.14);
+        }
+
+        button[data-testid="collapsedControl"] svg,
+        button[data-testid="collapsedControl"] path {
+          color: #ffffff !important;
+          fill: #ffffff !important;
+        }
+
+        [data-testid="stStatusWidget"] svg,
+        [data-testid="stStatusWidget"] path {
+          color: #ffffff !important;
+          fill: #ffffff !important;
         }
 
         .stButton button {
@@ -701,166 +726,166 @@ def main():
                     except Exception as e:
                         st.error(f"Nepavyko atkurti backup: {e}")
 
-    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
-    search_query = st.text_input(
-        "Paieska (WC ID arba pavadinimas)",
-        key="wc_search_query",
-        placeholder="Ivesk WC ID arba pavadinima",
-    )
-    st.markdown('<h4>WC lauku redagavimas</h4>', unsafe_allow_html=True)
-    st.markdown(
-        '<p>Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</p>',
-        unsafe_allow_html=True,
-    )
-    edit_df = load_wc_edit_df(session)
-    if edit_df.empty:
-        st.info("WC duomenys negauti. Pirma importuok is WC API.")
-    else:
-        pending_count = session.query(WcProductEdit).count()
-        st.caption(f"Laukiantys pakeitimai: {pending_count}")
-        st.caption("Tuscios reiksmes laikomos kaip 'nekeisti' ir i WC nesiunciamos.")
-
-        editable_keys = [spec["key"] for spec in WC_EDIT_FIELDS]
-        ordered_cols = ["wc_id"] + editable_keys
-        if "price" in edit_df.columns:
-            ordered_cols.append("price")
-        remaining_cols = [c for c in edit_df.columns if c not in ordered_cols]
-        edit_df = edit_df.reindex(columns=[c for c in ordered_cols if c in edit_df.columns] + remaining_cols)
-
-        column_config = {
-            "wc_id": st.column_config.NumberColumn("WC ID"),
-        }
-        for spec in WC_EDIT_FIELDS:
-            key = spec["key"]
-            label = spec["label"]
-            field_type = spec["type"]
-            if field_type == "bool":
-                column_config[key] = st.column_config.CheckboxColumn(label)
-            elif field_type == "date":
-                column_config[key] = st.column_config.DateColumn(label)
-            elif field_type == "int":
-                column_config[key] = st.column_config.NumberColumn(label, step=1)
-            elif field_type in {"float", "price"}:
-                column_config[key] = st.column_config.NumberColumn(label, format="%.2f")
-            else:
-                column_config[key] = st.column_config.TextColumn(label)
-
-        if "price" in edit_df.columns:
-            column_config["price"] = st.column_config.NumberColumn("Kaina (read-only)", format="%.2f")
-
-        filtered_df = edit_df
-        query = (search_query or "").strip()
-        if query:
-            mask = None
-            if "wc_id" in edit_df.columns:
-                mask = edit_df["wc_id"].astype(str).str.contains(query, case=False, na=False)
-            if "name" in edit_df.columns:
-                name_mask = edit_df["name"].astype(str).str.contains(query, case=False, na=False)
-                mask = name_mask if mask is None else (mask | name_mask)
-            if mask is not None:
-                filtered_df = edit_df[mask]
-            st.caption(f"Rodoma: {len(filtered_df)} / {len(edit_df)}")
-
-        disabled_cols = [col for col in filtered_df.columns if col not in editable_keys]
-
-        edited_raw = st.data_editor(
-            filtered_df,
-            num_rows="fixed",
-            hide_index=True,
-            disabled=disabled_cols,
-            column_config=column_config,
-            width="stretch",
-            key=f"wc_editor_{st.session_state['wc_editor_version']}",
+    with st.container():
+        st.markdown('<div class="wc-editor-marker"></div>', unsafe_allow_html=True)
+        search_query = st.text_input(
+            "Paieska (WC ID arba pavadinimas)",
+            key="wc_search_query",
+            placeholder="Ivesk WC ID arba pavadinima",
         )
+        st.markdown('<h4>WC lauku redagavimas</h4>', unsafe_allow_html=True)
+        st.markdown(
+            '<p>Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</p>',
+            unsafe_allow_html=True,
+        )
+        edit_df = load_wc_edit_df(session)
+        if edit_df.empty:
+            st.info("WC duomenys negauti. Pirma importuok is WC API.")
+        else:
+            pending_count = session.query(WcProductEdit).count()
+            st.caption(f"Laukiantys pakeitimai: {pending_count}")
+            st.caption("Tuscios reiksmes laikomos kaip 'nekeisti' ir i WC nesiunciamos.")
 
-        backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_raw")
-        if st.button("Issaugoti WC pakeitimus"):
-            if backup_on_save:
-                try:
-                    create_backup(label="before_wc_edit_save")
-                except Exception as e:
-                    st.error(f"Nepavyko sukurti kopijos: {e}")
-                    st.stop()
+            editable_keys = [spec["key"] for spec in WC_EDIT_FIELDS]
+            ordered_cols = ["wc_id"] + editable_keys
+            if "price" in edit_df.columns:
+                ordered_cols.append("price")
+            remaining_cols = [c for c in edit_df.columns if c not in ordered_cols]
+            edit_df = edit_df.reindex(columns=[c for c in ordered_cols if c in edit_df.columns] + remaining_cols)
 
-            invalid_price_rows = []
-            stock_manage_rows = []
-
-            raw_rows = session.query(WcProductRaw).all()
-            raw_by_wc = {r.wc_id: r for r in raw_rows if r.wc_id}
-            edit_rows = session.query(WcProductEdit).all()
-            edit_by_wc = {e.wc_id: e for e in edit_rows if e.wc_id}
-
-            for _, row in edited_raw.iterrows():
-                wc_id = to_int(row.get("wc_id"))
-                if not wc_id:
-                    continue
-                raw_obj = raw_by_wc.get(wc_id)
-                if raw_obj is None:
-                    continue
-
-                raw = raw_obj.raw if isinstance(raw_obj.raw, dict) else {}
-                edit_obj = edit_by_wc.get(wc_id)
-                edits = edit_obj.edits if edit_obj and isinstance(edit_obj.edits, dict) else {}
-
-                for spec in WC_EDIT_FIELDS:
-                    key = spec["key"]
-                    field_type = spec["type"]
-                    new_val = _normalize_value(row.get(key), field_type)
-                    base_val = _normalize_value(get_raw_value(raw, key), field_type)
-
-                    if field_type == "bool" and base_val is None and new_val is False:
-                        new_val = None
-
-                    if new_val is None or new_val == base_val:
-                        edits.pop(key, None)
-                    else:
-                        edits[key] = new_val
-
-                # Validacija: sale_price negali buti didesne uz regular_price.
-                if "regular_price" in edits or "sale_price" in edits:
-                    reg_val = edits.get("regular_price")
-                    if reg_val is None:
-                        reg_val = _normalize_value(get_raw_value(raw, "regular_price"), "price")
-                    sale_val = edits.get("sale_price")
-                    if sale_val is None:
-                        sale_val = _normalize_value(get_raw_value(raw, "sale_price"), "price")
-                    if reg_val is not None and sale_val is not None and sale_val > reg_val:
-                        for key in ("regular_price", "sale_price", "date_on_sale_from", "date_on_sale_to"):
-                            edits.pop(key, None)
-                        invalid_price_rows.append(wc_id)
-
-                # Jei bandoma keisti kieki, bet WC manage_stock isjungta, neatnaujinam kiekio.
-                if "stock_quantity" in edits and "manage_stock" not in edits:
-                    base_manage = _normalize_value(get_raw_value(raw, "manage_stock"), "bool")
-                    if base_manage is not True:
-                        edits.pop("stock_quantity", None)
-                        stock_manage_rows.append(wc_id)
-
-                if edits:
-                    if edit_obj is None:
-                        edit_obj = WcProductEdit(wc_id=wc_id, edits=edits)
-                        session.add(edit_obj)
-                        edit_by_wc[wc_id] = edit_obj
-                    else:
-                        edit_obj.edits = edits
+            column_config = {
+                "wc_id": st.column_config.NumberColumn("WC ID"),
+            }
+            for spec in WC_EDIT_FIELDS:
+                key = spec["key"]
+                label = spec["label"]
+                field_type = spec["type"]
+                if field_type == "bool":
+                    column_config[key] = st.column_config.CheckboxColumn(label)
+                elif field_type == "date":
+                    column_config[key] = st.column_config.DateColumn(label)
+                elif field_type == "int":
+                    column_config[key] = st.column_config.NumberColumn(label, step=1)
+                elif field_type in {"float", "price"}:
+                    column_config[key] = st.column_config.NumberColumn(label, format="%.2f")
                 else:
-                    if edit_obj is not None:
-                        session.delete(edit_obj)
+                    column_config[key] = st.column_config.TextColumn(label)
 
-            session.commit()
-            pending_after = session.query(WcProductEdit).count()
-            st.success(f"WC pakeitimai issaugoti. Laukiantys: {pending_after}")
-            if invalid_price_rows:
-                st.warning(
-                    "Dalies prekiu kainu keitimas atmestas: sale_price > regular_price. "
-                    f"WC_ID: {', '.join(str(i) for i in invalid_price_rows[:10])}"
-                )
-            if stock_manage_rows:
-                st.warning(
-                    "Dalies prekiu kiekis nepakeistas, nes manage_stock isjungta. "
-                    f"WC_ID: {', '.join(str(i) for i in stock_manage_rows[:10])}"
-                )
-    st.markdown("</div>", unsafe_allow_html=True)
+            if "price" in edit_df.columns:
+                column_config["price"] = st.column_config.NumberColumn("Kaina (read-only)", format="%.2f")
+
+            filtered_df = edit_df
+            query = (search_query or "").strip()
+            if query:
+                mask = None
+                if "wc_id" in edit_df.columns:
+                    mask = edit_df["wc_id"].astype(str).str.contains(query, case=False, na=False)
+                if "name" in edit_df.columns:
+                    name_mask = edit_df["name"].astype(str).str.contains(query, case=False, na=False)
+                    mask = name_mask if mask is None else (mask | name_mask)
+                if mask is not None:
+                    filtered_df = edit_df[mask]
+                st.caption(f"Rodoma: {len(filtered_df)} / {len(edit_df)}")
+
+            disabled_cols = [col for col in filtered_df.columns if col not in editable_keys]
+
+            edited_raw = st.data_editor(
+                filtered_df,
+                num_rows="fixed",
+                hide_index=True,
+                disabled=disabled_cols,
+                column_config=column_config,
+                width="stretch",
+                key=f"wc_editor_{st.session_state['wc_editor_version']}",
+            )
+
+            backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_raw")
+            if st.button("Issaugoti WC pakeitimus"):
+                if backup_on_save:
+                    try:
+                        create_backup(label="before_wc_edit_save")
+                    except Exception as e:
+                        st.error(f"Nepavyko sukurti kopijos: {e}")
+                        st.stop()
+
+                invalid_price_rows = []
+                stock_manage_rows = []
+
+                raw_rows = session.query(WcProductRaw).all()
+                raw_by_wc = {r.wc_id: r for r in raw_rows if r.wc_id}
+                edit_rows = session.query(WcProductEdit).all()
+                edit_by_wc = {e.wc_id: e for e in edit_rows if e.wc_id}
+
+                for _, row in edited_raw.iterrows():
+                    wc_id = to_int(row.get("wc_id"))
+                    if not wc_id:
+                        continue
+                    raw_obj = raw_by_wc.get(wc_id)
+                    if raw_obj is None:
+                        continue
+
+                    raw = raw_obj.raw if isinstance(raw_obj.raw, dict) else {}
+                    edit_obj = edit_by_wc.get(wc_id)
+                    edits = edit_obj.edits if edit_obj and isinstance(edit_obj.edits, dict) else {}
+
+                    for spec in WC_EDIT_FIELDS:
+                        key = spec["key"]
+                        field_type = spec["type"]
+                        new_val = _normalize_value(row.get(key), field_type)
+                        base_val = _normalize_value(get_raw_value(raw, key), field_type)
+
+                        if field_type == "bool" and base_val is None and new_val is False:
+                            new_val = None
+
+                        if new_val is None or new_val == base_val:
+                            edits.pop(key, None)
+                        else:
+                            edits[key] = new_val
+
+                    # Validacija: sale_price negali buti didesne uz regular_price.
+                    if "regular_price" in edits or "sale_price" in edits:
+                        reg_val = edits.get("regular_price")
+                        if reg_val is None:
+                            reg_val = _normalize_value(get_raw_value(raw, "regular_price"), "price")
+                        sale_val = edits.get("sale_price")
+                        if sale_val is None:
+                            sale_val = _normalize_value(get_raw_value(raw, "sale_price"), "price")
+                        if reg_val is not None and sale_val is not None and sale_val > reg_val:
+                            for key in ("regular_price", "sale_price", "date_on_sale_from", "date_on_sale_to"):
+                                edits.pop(key, None)
+                            invalid_price_rows.append(wc_id)
+
+                    # Jei bandoma keisti kieki, bet WC manage_stock isjungta, neatnaujinam kiekio.
+                    if "stock_quantity" in edits and "manage_stock" not in edits:
+                        base_manage = _normalize_value(get_raw_value(raw, "manage_stock"), "bool")
+                        if base_manage is not True:
+                            edits.pop("stock_quantity", None)
+                            stock_manage_rows.append(wc_id)
+
+                    if edits:
+                        if edit_obj is None:
+                            edit_obj = WcProductEdit(wc_id=wc_id, edits=edits)
+                            session.add(edit_obj)
+                            edit_by_wc[wc_id] = edit_obj
+                        else:
+                            edit_obj.edits = edits
+                    else:
+                        if edit_obj is not None:
+                            session.delete(edit_obj)
+
+                session.commit()
+                pending_after = session.query(WcProductEdit).count()
+                st.success(f"WC pakeitimai issaugoti. Laukiantys: {pending_after}")
+                if invalid_price_rows:
+                    st.warning(
+                        "Dalies prekiu kainu keitimas atmestas: sale_price > regular_price. "
+                        f"WC_ID: {', '.join(str(i) for i in invalid_price_rows[:10])}"
+                    )
+                if stock_manage_rows:
+                    st.warning(
+                        "Dalies prekiu kiekis nepakeistas, nes manage_stock isjungta. "
+                        f"WC_ID: {', '.join(str(i) for i in stock_manage_rows[:10])}"
+                    )
 
 if __name__ == "__main__":
     main()
