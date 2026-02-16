@@ -540,6 +540,26 @@ def apply_theme():
           box-shadow: var(--shadow);
         }
 
+        div[role="dialog"] {
+          width: 100vw !important;
+          max-width: 100vw !important;
+          height: 100vh !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        div[role="dialog"] [data-testid="stDataFrame"],
+        div[role="dialog"] [data-testid="stDataFrame"] > div,
+        div[role="dialog"] [data-testid="stDataFrame"] > div > div,
+        div[role="dialog"] [data-testid="stDataEditor"],
+        div[role="dialog"] [data-testid="stDataEditor"] > div,
+        div[role="dialog"] [data-testid="stDataEditor"] > div > div {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100% !important;
+          max-height: 100% !important;
+        }
+
         hr {
           border: none;
           height: 1px;
