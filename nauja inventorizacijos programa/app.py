@@ -565,6 +565,10 @@ def main():
         unsafe_allow_html=True,
     )
 
+    flash_msg = st.session_state.pop("flash_msg", None)
+    if flash_msg:
+        st.success(flash_msg)
+
     with st.sidebar:
         st.markdown('<div class="section-title">Sesija</div>', unsafe_allow_html=True)
         st.caption(f"DB: {'yra' if db_path.exists() else 'nera'}")
@@ -628,7 +632,12 @@ def main():
                         elif updated == 0:
                             st.warning("WC nepatvirtino pakeitimu arba nebuvo ka siusti.")
                         else:
-                            st.success("OK. Sinchronizacija su WooCommerce baigta.")
+                            st.session_state["flash_msg"] = "OK. Sinchronizacija su WooCommerce baigta."
+                            try:
+                                session.close()
+                            except Exception:
+                                pass
+                            st.rerun()
                 except Exception as e:
                     st.error(f"Sinchronizacijos klaida: {e}")
 
