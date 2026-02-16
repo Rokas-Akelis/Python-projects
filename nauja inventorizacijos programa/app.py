@@ -728,6 +728,9 @@ def main():
                     st.error(f"Nepavyko sukurti kopijos: {e}")
                     st.stop()
 
+            invalid_price_rows = []
+            stock_manage_rows = []
+
             raw_rows = session.query(WcProductRaw).all()
             raw_by_wc = {r.wc_id: r for r in raw_rows if r.wc_id}
             edit_rows = session.query(WcProductEdit).all()
@@ -759,6 +762,26 @@ def main():
                     else:
                         edits[key] = new_val
 
+                # Validacija: sale_price negali buti didesne uz regular_price.
+                if "regular_price" in edits or "sale_price" in edits:
+                    reg_val = edits.get("regular_price")
+                    if reg_val is None:
+                        reg_val = _normalize_value(get_raw_value(raw, "regular_price"), "price")
+                    sale_val = edits.get("sale_price")
+                    if sale_val is None:
+                        sale_val = _normalize_value(get_raw_value(raw, "sale_price"), "price")
+                    if reg_val is not None and sale_val is not None and sale_val > reg_val:
+                        for key in ("regular_price", "sale_price", "date_on_sale_from", "date_on_sale_to"):
+                            edits.pop(key, None)
+                        invalid_price_rows.append(wc_id)
+
+                # Jei bandoma keisti kieki, bet WC manage_stock isjungta, neatnaujinam kiekio.
+                if "stock_quantity" in edits and "manage_stock" not in edits:
+                    base_manage = _normalize_value(get_raw_value(raw, "manage_stock"), "bool")
+                    if base_manage is not True:
+                        edits.pop("stock_quantity", None)
+                        stock_manage_rows.append(wc_id)
+
                 if edits:
                     if edit_obj is None:
                         edit_obj = WcProductEdit(wc_id=wc_id, edits=edits)
@@ -773,6 +796,16 @@ def main():
             session.commit()
             pending_after = session.query(WcProductEdit).count()
             st.success(f"WC pakeitimai issaugoti. Laukiantys: {pending_after}")
+            if invalid_price_rows:
+                st.warning(
+                    "Dalies prekiu kainu keitimas atmestas: sale_price > regular_price. "
+                    f"WC_ID: {', '.join(str(i) for i in invalid_price_rows[:10])}"
+                )
+            if stock_manage_rows:
+                st.warning(
+                    "Dalies prekiu kiekis nepakeistas, nes manage_stock isjungta. "
+                    f"WC_ID: {', '.join(str(i) for i in stock_manage_rows[:10])}"
+                )
     st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
