@@ -26,12 +26,14 @@ class WooClient:
         resp.raise_for_status()
         return resp.json()
 
-    def list_products(self, per_page: int = 100, page: int = 1):
+    def list_products(self, per_page: int = 100, page: int = 1, status: str | None = None):
         url = urljoin(self.base_url, "wp-json/wc/v3/products")
         params = {
             "per_page": per_page,
             "page": page,
         }
+        if status:
+            params["status"] = status
         resp = requests.get(url, auth=self.auth, params=params)
         resp.raise_for_status()
         return resp.json()

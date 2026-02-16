@@ -108,7 +108,7 @@ class TestSyncToWC(unittest.TestCase):
                     def __init__(self, base_url, consumer_key, consumer_secret):
                         self.page = 0
 
-                    def list_products(self, page=1, per_page=100):
+                    def list_products(self, page=1, per_page=100, status=None):
                         if page == 1:
                             return items
                         return []

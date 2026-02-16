@@ -10,6 +10,14 @@ WC_CK = os.getenv("WC_CK")
 WC_CS = os.getenv("WC_CS")
 WC_SYNC_IDS_RAW = os.getenv("WC_SYNC_IDS", "").strip()
 WC_BATCH_SIZE_RAW = os.getenv("WC_BATCH_SIZE", "").strip()
+WC_IMPORT_STATUS_RAW = os.getenv("WC_IMPORT_STATUS", "any").strip()
+
+
+def _normalize_import_status(value: str | None) -> str | None:
+    if value is None:
+        return None
+    status = str(value).strip().lower()
+    return status or None
 
 
 def _parse_batch_size(value, default=100) -> int:
@@ -52,6 +60,7 @@ def _normalize_wc_sync_ids(value) -> set[int]:
 DEFAULT_WC_SYNC_IDS = _normalize_wc_sync_ids(WC_SYNC_IDS_RAW)
 WC_BATCH_SIZE = _parse_batch_size(WC_BATCH_SIZE_RAW, default=100)
 WC_EDIT_FIELD_KEYS = {spec["key"] for spec in WC_EDIT_FIELDS}
+WC_IMPORT_STATUS = _normalize_import_status(WC_IMPORT_STATUS_RAW)
 
 
 def _wc_id_allowed(wc_id, allowed_ids: set[int]) -> bool:
@@ -494,7 +503,7 @@ def pull_products_from_wc():
     page = 1
     total_imported = 0
     while True:
-        products = woo.list_products(page=page, per_page=100)
+        products = woo.list_products(page=page, per_page=100, status=WC_IMPORT_STATUS)
         if not products:
             break
         for item in products:
