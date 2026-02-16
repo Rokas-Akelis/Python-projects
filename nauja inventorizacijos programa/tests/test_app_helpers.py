@@ -54,9 +54,9 @@ class TestAppHelpers(unittest.TestCase):
                 )
                 session.commit()
 
-            products_df = app.load_products_df(session)
-            self.assertEqual(products_df.iloc[0]["Pavadinimas"], "Test")
-            self.assertEqual(products_df.iloc[0]["Kiekis"], 3)
+                products_df = app.load_products_df(session)
+                self.assertEqual(products_df.iloc[0]["Pavadinimas"], "Test")
+                self.assertEqual(products_df.iloc[0]["Kiekis"], 3)
 
                 moves_df = app.load_movements_df(session)
                 self.assertEqual(moves_df.loc[0, "Produktas"], "Test")

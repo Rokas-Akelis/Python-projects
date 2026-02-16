@@ -266,6 +266,8 @@ def pick_first_column(df, candidates):
 
 
 def apply_theme():
+    if not hasattr(st, "markdown"):
+        return
     st.markdown(
         """
         <style>

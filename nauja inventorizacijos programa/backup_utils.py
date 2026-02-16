@@ -55,6 +55,7 @@ def create_backup(label: str = "", db_path: Path | None = None, backup_dir: Path
     """
     db_path = db_path or get_db_path()
     backup_dir = backup_dir or ensure_backup_dir(db_path)
+    backup_dir.mkdir(parents=True, exist_ok=True)
     if not db_path.exists():
         return None
     timestamp = time.strftime("%Y%m%d-%H%M%S")
