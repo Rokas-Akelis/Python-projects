@@ -197,9 +197,11 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
     raw_rows = session.query(WcProductRaw).all()
     raw_by_wc = {r.wc_id: r for r in raw_rows if r.wc_id}
     edit_rows = session.query(WcProductEdit).all()
+    summary = {"sent": 0, "updated": 0, "errors": [], "skipped": 0}
+
     if not edit_rows:
         print("Nera pakeitimu sinchronizavimui.")
-        return
+        return summary
 
     batch_updates = []
     batch_meta = {}
@@ -210,10 +212,14 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
         nonlocal raw_dirty, edits_dirty
         if not batch_updates:
             return
+        summary["sent"] += len(batch_updates)
         try:
             result = woo.update_products_batch(batch_updates)
         except Exception as e:
             print(f"Klaida WC batch atnaujinant {len(batch_updates)} produktu: {e}")
+            summary["errors"].append(
+                {"wc_id": None, "message": str(e), "count": len(batch_updates)}
+            )
             batch_updates.clear()
             batch_meta.clear()
             return
@@ -240,11 +246,14 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
                 err = item.get("error")
                 msg = err.get("message") if isinstance(err, dict) else str(err)
                 print(f"Klaida WC atnaujinant (ID={wc_id}): {msg}")
+                summary["errors"].append({"wc_id": wc_id, "message": msg})
                 continue
             success_ids.add(wc_id)
 
         if not update_items:
             print(f"WC batch atsakymas tuscias, nepatvirtinti {len(batch_updates)} atnaujinimai.")
+            for wc_id in batch_meta.keys():
+                summary["errors"].append({"wc_id": wc_id, "message": "WC batch atsakymas tuscias"})
 
         for wc_id, meta in batch_meta.items():
             if update_items:
@@ -252,6 +261,9 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
                     continue
                 if success_ids and wc_id not in success_ids:
                     print(f"WC ID={wc_id}: atnaujinimas nepatvirtintas, DB nelieciama.")
+                    summary["errors"].append(
+                        {"wc_id": wc_id, "message": "WC nepatvirtino atnaujinimo"}
+                    )
                     continue
             else:
                 continue
@@ -265,6 +277,7 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
                 session.delete(meta["edit_obj"])
             raw_dirty = True
             edits_dirty = True
+            summary["updated"] += 1
 
         batch_updates.clear()
         batch_meta.clear()
@@ -274,18 +287,22 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
         if not wc_id:
             continue
         if not _wc_id_allowed(wc_id, allowed_ids):
+            summary["skipped"] += 1
             continue
         raw_obj = raw_by_wc.get(wc_id)
         if raw_obj is None:
             print(f"WC ID={wc_id}: nerasta importuotu duomenu, praleidziama.")
+            summary["skipped"] += 1
             continue
 
         edits = edit.edits or {}
         if not isinstance(edits, dict) or not edits:
+            summary["skipped"] += 1
             continue
 
         payload = _build_wc_payload_from_edits(edits)
         if not payload:
+            summary["skipped"] += 1
             continue
 
         payload["id"] = int(wc_id)
@@ -302,6 +319,7 @@ def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
     flush_batch()
     if raw_dirty or edits_dirty:
         session.commit()
+    return summary
 
 
 def sync_prices_and_stock_to_wc(allowed_wc_ids=None, batch_size=None):

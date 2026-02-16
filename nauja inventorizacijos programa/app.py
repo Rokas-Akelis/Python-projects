@@ -619,8 +619,16 @@ def main():
                     if pending_now == 0:
                         st.warning("Nera issaugotu pakeitimu siuntimui.")
                     else:
-                        sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
-                        st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
+                        result = sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
+                        errors = result.get("errors") if isinstance(result, dict) else None
+                        updated = result.get("updated") if isinstance(result, dict) else None
+                        if errors:
+                            st.error("WC grazino klaidu. Ziurek detales zemiau.")
+                            st.write(errors[:10])
+                        elif updated == 0:
+                            st.warning("WC nepatvirtino pakeitimu arba nebuvo ka siusti.")
+                        else:
+                            st.success("OK. Sinchronizacija su WooCommerce baigta.")
                 except Exception as e:
                     st.error(f"Sinchronizacijos klaida: {e}")
 
