@@ -539,6 +539,9 @@ def main():
     else:
         pass
 
+    if "wc_editor_version" not in st.session_state:
+        st.session_state["wc_editor_version"] = 0
+
     db_path = get_db_path()
     session = get_session(db_path)
     backup_dir = get_backup_dir(db_path)
@@ -590,6 +593,7 @@ def main():
             else:
                 try:
                     pull_products_from_wc()
+                    st.session_state["wc_editor_version"] += 1
                     st.success("Importas is WC baigtas.")
                     st.rerun()
                 except Exception as e:
@@ -633,6 +637,7 @@ def main():
                             st.warning("WC nepatvirtino pakeitimu arba nebuvo ka siusti.")
                         else:
                             st.session_state["flash_msg"] = "OK. Sinchronizacija su WooCommerce baigta."
+                            st.session_state["wc_editor_version"] += 1
                             try:
                                 session.close()
                             except Exception:
@@ -671,6 +676,7 @@ def main():
                     try:
                         restore_backup(backup_path=backup_dir / selected_backup, db_path=db_path)
                         st.success("DB atkurta. Programa perkraunama.")
+                        st.session_state["wc_editor_version"] += 1
                         st.rerun()
                     except Exception as e:
                         st.error(f"Nepavyko atkurti backup: {e}")
@@ -681,6 +687,9 @@ def main():
         '<p>Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</p>',
         unsafe_allow_html=True,
     )
+    if st.button("Atnaujinti lentele", key="btn_refresh_table"):
+        st.session_state["wc_editor_version"] += 1
+        st.rerun()
     edit_df = load_wc_edit_df(session)
     if edit_df.empty:
         st.info("WC duomenys negauti. Pirma importuok is WC API.")
@@ -726,6 +735,7 @@ def main():
             disabled=disabled_cols,
             column_config=column_config,
             width="stretch",
+            key=f"wc_editor_{st.session_state['wc_editor_version']}",
         )
 
         backup_on_save = st.checkbox("Pries issaugant sukurti DB kopija", value=True, key="backup_raw")
