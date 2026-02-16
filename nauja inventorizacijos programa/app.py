@@ -559,11 +559,11 @@ def main():
                 st.warning("Patvirtink importa checkbox'u.")
             else:
                 try:
-                pull_products_from_wc()
-                st.success("Importas is WC baigtas.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Importo klaida: {e}")
+                    pull_products_from_wc()
+                    st.success("Importas is WC baigtas.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Importo klaida: {e}")
 
         st.markdown('<h4>Siusti pakeitimus</h4>', unsafe_allow_html=True)
         st.markdown(
