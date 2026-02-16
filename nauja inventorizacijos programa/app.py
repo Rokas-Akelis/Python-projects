@@ -508,93 +508,6 @@ def main():
             st.session_state.authed = False
             st.rerun()
 
-    st.markdown('<div class="section-title">Operacijos</div>', unsafe_allow_html=True)
-    st.markdown('<div class="lux-grid">', unsafe_allow_html=True)
-
-    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
-    st.markdown('<h4>Importuoti is WC</h4>', unsafe_allow_html=True)
-    st.markdown(
-        '<p>Atsiuncia produktus is WooCommerce API ir paruosia redagavimui.</p>',
-        unsafe_allow_html=True,
-    )
-    confirm_pull = st.checkbox("Patvirtinu importa", value=False, key="confirm_pull_wc_primary")
-    if st.button("Importuoti is WC", key="btn_pull_wc"):
-        if not confirm_pull:
-            st.warning("Patvirtink importa checkbox'u.")
-        else:
-            try:
-                pull_products_from_wc()
-                st.success("Importas is WC baigtas.")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Importo klaida: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
-    st.markdown('<h4>Siusti pakeitimus</h4>', unsafe_allow_html=True)
-    st.markdown(
-        '<p>Siunciami tik tavo redaguoti laukai. Tuscios reiksmes nesiunciamos.</p>',
-        unsafe_allow_html=True,
-    )
-    sync_ids_text = st.text_input(
-        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
-        value=os.getenv("WC_SYNC_IDS", ""),
-        key="sync_wc_ids",
-    )
-    confirm_push = st.checkbox("Patvirtinu siuntima", value=False, key="confirm_push_wc")
-    if st.button("Sinchronizuoti su svetaine", key="btn_push_wc"):
-        if not confirm_push:
-            st.warning("Patvirtink siuntima checkbox'u.")
-        else:
-            try:
-                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
-                st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
-            except Exception as e:
-                st.error(f"Sinchronizacijos klaida: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
-    st.markdown('<h4>Atsargines kopijos</h4>', unsafe_allow_html=True)
-    st.markdown(
-        f'<p>DB kelias: {db_path} | Backup: {backup_dir}</p>',
-        unsafe_allow_html=True,
-    )
-    if st.button("Sukurti DB kopija", key="btn_backup_create"):
-        try:
-            backup_path = create_backup(label="manual")
-            if backup_path is None:
-                st.warning("DB dar nesukurta - kopija nesukurta.")
-            else:
-                st.success(f"Atsargine kopija sukurta: {backup_path.name}")
-                st.rerun()
-        except Exception as e:
-            st.error(f"Nepavyko sukurti kopijos: {e}")
-
-    if not backups:
-        st.caption("Backup failu dar nera.")
-    else:
-        backup_labels = [b.name for b in backups]
-        selected_backup = st.selectbox("Pasirink backup", backup_labels, key="restore_backup_select")
-        confirm_restore = st.checkbox("Patvirtinu atkurima", value=False, key="confirm_restore_db")
-        if st.button("Atkurti is backup", key="btn_backup_restore"):
-            if not confirm_restore:
-                st.warning("Patvirtink atkurima checkbox'u.")
-            else:
-                try:
-                    session.close()
-                except Exception:
-                    pass
-                try:
-                    restore_backup(backup_path=backup_dir / selected_backup, db_path=db_path)
-                    st.success("DB atkurta. Programa perkraunama.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Nepavyko atkurti backup: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    st.markdown("---")
     st.markdown('<div class="section-title">Redagavimas</div>', unsafe_allow_html=True)
     st.markdown('<div class="lux-card">', unsafe_allow_html=True)
     st.markdown('<h4>WC lauku redagavimas</h4>', unsafe_allow_html=True)
@@ -705,8 +618,93 @@ def main():
             st.success(f"WC pakeitimai issaugoti. Laukiantys: {pending_after}")
     st.markdown("</div>", unsafe_allow_html=True)
 
+    st.markdown("---")
 
+    st.markdown('<div class="section-title">Operacijos</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lux-grid">', unsafe_allow_html=True)
 
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>Importuoti is WC</h4>', unsafe_allow_html=True)
+    st.markdown(
+        '<p>Atsiuncia produktus is WooCommerce API ir paruosia redagavimui.</p>',
+        unsafe_allow_html=True,
+    )
+    confirm_pull = st.checkbox("Patvirtinu importa", value=False, key="confirm_pull_wc_primary")
+    if st.button("Importuoti is WC", key="btn_pull_wc"):
+        if not confirm_pull:
+            st.warning("Patvirtink importa checkbox'u.")
+        else:
+            try:
+                pull_products_from_wc()
+                st.success("Importas is WC baigtas.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Importo klaida: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>Siusti pakeitimus</h4>', unsafe_allow_html=True)
+    st.markdown(
+        '<p>Siunciami tik tavo redaguoti laukai. Tuscios reiksmes nesiunciamos.</p>',
+        unsafe_allow_html=True,
+    )
+    sync_ids_text = st.text_input(
+        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
+        value=os.getenv("WC_SYNC_IDS", ""),
+        key="sync_wc_ids",
+    )
+    confirm_push = st.checkbox("Patvirtinu siuntima", value=False, key="confirm_push_wc")
+    if st.button("Sinchronizuoti su svetaine", key="btn_push_wc"):
+        if not confirm_push:
+            st.warning("Patvirtink siuntima checkbox'u.")
+        else:
+            try:
+                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
+                st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
+            except Exception as e:
+                st.error(f"Sinchronizacijos klaida: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>Atsargines kopijos</h4>', unsafe_allow_html=True)
+    st.markdown(
+        f'<p>DB kelias: {db_path} | Backup: {backup_dir}</p>',
+        unsafe_allow_html=True,
+    )
+    if st.button("Sukurti DB kopija", key="btn_backup_create"):
+        try:
+            backup_path = create_backup(label="manual")
+            if backup_path is None:
+                st.warning("DB dar nesukurta - kopija nesukurta.")
+            else:
+                st.success(f"Atsargine kopija sukurta: {backup_path.name}")
+                st.rerun()
+        except Exception as e:
+            st.error(f"Nepavyko sukurti kopijos: {e}")
+
+    if not backups:
+        st.caption("Backup failu dar nera.")
+    else:
+        backup_labels = [b.name for b in backups]
+        selected_backup = st.selectbox("Pasirink backup", backup_labels, key="restore_backup_select")
+        confirm_restore = st.checkbox("Patvirtinu atkurima", value=False, key="confirm_restore_db")
+        if st.button("Atkurti is backup", key="btn_backup_restore"):
+            if not confirm_restore:
+                st.warning("Patvirtink atkurima checkbox'u.")
+            else:
+                try:
+                    session.close()
+                except Exception:
+                    pass
+                try:
+                    restore_backup(backup_path=backup_dir / selected_backup, db_path=db_path)
+                    st.success("DB atkurta. Programa perkraunama.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Nepavyko atkurti backup: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
