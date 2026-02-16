@@ -270,23 +270,23 @@ def apply_theme():
     st.markdown(
         """
         <style>
-        @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
 
         :root {
-          --bg: #f5f6f8;
-          --surface: rgba(255, 255, 255, 0.92);
-          --surface-strong: #ffffff;
-          --text: #0b1220;
-          --muted: #5b6473;
-          --accent: #0f172a;
-          --accent-2: #2563eb;
-          --border: rgba(15, 23, 42, 0.12);
-          --shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
-          --radius: 18px;
+          --bg: #f3f1ee;
+          --surface: #fbfbfa;
+          --surface-2: #f1efec;
+          --text: #151515;
+          --muted: #5c5c5c;
+          --accent: #0a0a0a;
+          --accent-2: #8b5cf6;
+          --border: rgba(21, 21, 21, 0.12);
+          --shadow: 0 22px 60px rgba(15, 12, 10, 0.12);
+          --radius: 22px;
         }
 
         html, body, [class*="css"] {
-          font-family: "Manrope", "Segoe UI", "Calibri", sans-serif;
+          font-family: "Inter", "Segoe UI", "Calibri", sans-serif;
           color: var(--text);
         }
 
@@ -296,103 +296,122 @@ def apply_theme():
 
         .stApp {
           background:
-            radial-gradient(800px circle at 90% 10%, rgba(37, 99, 235, 0.12), transparent 60%),
-            radial-gradient(700px circle at 5% 0%, rgba(15, 23, 42, 0.08), transparent 55%),
-            linear-gradient(180deg, #f7f8fb 0%, var(--bg) 100%);
+            radial-gradient(900px circle at 90% 5%, rgba(139, 92, 246, 0.10), transparent 60%),
+            radial-gradient(700px circle at 10% 0%, rgba(17, 24, 39, 0.08), transparent 55%),
+            linear-gradient(180deg, #f8f7f4 0%, var(--bg) 100%);
         }
 
         .block-container {
-          padding-top: 2.2rem;
-          max-width: 1280px;
+          padding-top: 2.4rem;
+          max-width: 1320px;
         }
 
         h1, h2, h3, .hero-title {
-          font-family: "Fraunces", "Times New Roman", serif;
+          font-family: "Playfair Display", "Times New Roman", serif;
           letter-spacing: 0.01em;
         }
 
-        .hero {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 1.2rem;
+        .app-shell {
+          display: grid;
+          grid-template-columns: minmax(280px, 320px) 1fr;
+          gap: 1.6rem;
+        }
+
+        .panel {
           background: var(--surface);
           border: 1px solid var(--border);
-          border-radius: 24px;
-          padding: 1.8rem 2rem;
+          border-radius: var(--radius);
+          padding: 1.4rem 1.6rem;
           box-shadow: var(--shadow);
-          backdrop-filter: blur(6px);
-          margin-bottom: 1.4rem;
+        }
+
+        .panel-title {
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.18em;
+          color: var(--muted);
+          margin-bottom: 0.75rem;
+        }
+
+        .hero {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 1.2rem;
+          align-items: center;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 28px;
+          padding: 2rem 2.2rem;
+          box-shadow: var(--shadow);
         }
 
         .hero-title {
-          font-size: 2.1rem;
+          font-size: 2.3rem;
           margin-bottom: 0.3rem;
         }
 
         .hero-subtitle {
           color: var(--muted);
+          max-width: 580px;
         }
 
         .hero-badges {
           display: flex;
           gap: 0.6rem;
           flex-wrap: wrap;
+          justify-content: flex-end;
         }
 
         .badge {
-          padding: 0.35rem 0.8rem;
+          padding: 0.4rem 0.9rem;
           border-radius: 999px;
-          border: 1px solid rgba(15, 23, 42, 0.14);
-          background: rgba(255, 255, 255, 0.9);
+          border: 1px solid rgba(21, 21, 21, 0.14);
+          background: var(--surface-2);
           color: var(--accent);
-          font-size: 0.72rem;
+          font-size: 0.7rem;
           text-transform: uppercase;
-          letter-spacing: 0.14em;
+          letter-spacing: 0.16em;
         }
 
         .section-title {
-          font-size: 0.75rem;
+          font-size: 0.8rem;
           text-transform: uppercase;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.2em;
           color: var(--muted);
           margin: 0.3rem 0 0.7rem;
         }
 
         .stButton button {
-          background: linear-gradient(135deg, var(--accent), #1f2937);
+          background: linear-gradient(135deg, var(--accent), #27272a);
           color: #fff;
           border: none;
-          padding: 0.65rem 1.2rem;
+          padding: 0.7rem 1.3rem;
           border-radius: 999px;
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.24);
+          box-shadow: 0 12px 26px rgba(15, 15, 15, 0.24);
           transition: transform 140ms ease, box-shadow 140ms ease;
         }
 
         .stButton button:hover {
           transform: translateY(-1px);
-          box-shadow: 0 16px 34px rgba(15, 23, 42, 0.28);
+          box-shadow: 0 18px 32px rgba(15, 15, 15, 0.28);
         }
-
-        .stButton button:active { transform: translateY(0); }
 
         div[data-testid="stTextInput"] input,
         div[data-testid="stFileUploader"] input,
         div[data-testid="stTextArea"] textarea,
         div[data-testid="stSelectbox"] select {
-          background: var(--surface-strong);
+          background: var(--surface);
           border: 1px solid var(--border);
           border-radius: 14px;
           padding: 0.6rem 0.8rem;
           color: var(--text);
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
         }
 
         div[data-testid="stDataFrame"],
         div[data-testid="stDataEditor"] {
           border-radius: var(--radius);
           border: 1px solid var(--border);
-          background: var(--surface-strong);
+          background: var(--surface);
           box-shadow: var(--shadow);
         }
 
@@ -402,10 +421,10 @@ def apply_theme():
           background: linear-gradient(90deg, transparent, var(--border), transparent);
         }
 
-        @media (max-width: 780px) {
-          .block-container { padding-top: 1.2rem; }
-          .hero { flex-direction: column; align-items: flex-start; }
-          .hero-title { font-size: 1.7rem; }
+        @media (max-width: 980px) {
+          .app-shell { grid-template-columns: 1fr; }
+          .hero { grid-template-columns: 1fr; }
+          .hero-badges { justify-content: flex-start; }
         }
         </style>
         """,
@@ -449,12 +468,15 @@ def main():
         <div class="hero">
           <div>
             <div class="hero-title">Inventorizacijos valdymas</div>
-            <div class="hero-subtitle">Moderni ir paprasta sistema kasdieniams WC duomenu veiksmams.</div>
+            <div class="hero-subtitle">
+              Aukštos kokybės darbo aplinka WooCommerce prekių priežiūrai. 
+              Sistema sinchronizuoja tik tavo ranka atliktus pakeitimus.
+            </div>
           </div>
           <div class="hero-badges">
-            <span class="badge">CSV</span>
-            <span class="badge">WC Sync</span>
-            <span class="badge">Atsargos</span>
+            <span class="badge">WC API</span>
+            <span class="badge">CSV Import</span>
+            <span class="badge">Backup</span>
           </div>
         </div>
         """,
@@ -464,63 +486,68 @@ def main():
     session = get_session()
 
     st.markdown('<div class="section-title">Pagrindiniai veiksmai</div>', unsafe_allow_html=True)
-    col_left, col_right = st.columns([1, 2], gap="large")
-    with col_left:
-        st.markdown("#### Atsargines kopijos")
-        st.caption("Rekomenduojama pries importa ar didesnius pakeitimus.")
-        db_path = get_db_path()
-        backup_dir = get_backup_dir(db_path)
-        st.caption(f"DB kelias: {db_path} ({'yra' if db_path.exists() else 'nera'})")
-        st.caption(f"Backup aplankas: {backup_dir}")
-        if st.button("Sukurti DB atsargine kopija"):
-            try:
-                backup_path = create_backup(label="manual")
-                if backup_path is None:
-                    st.warning("DB dar nesukurta - kopija nesukurta.")
-                else:
-                    st.success(f"Atsargine kopija sukurta: {backup_path.name}")
-            except Exception as e:
-                st.error(f"Nepavyko sukurti kopijos: {e}")
+    st.markdown('<div class="app-shell">', unsafe_allow_html=True)
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">Saugumas</div>', unsafe_allow_html=True)
+    st.markdown("#### Atsargines kopijos")
+    st.caption("Rekomenduojama pries importa ar didesnius pakeitimus.")
+    db_path = get_db_path()
+    backup_dir = get_backup_dir(db_path)
+    st.caption(f"DB kelias: {db_path} ({'yra' if db_path.exists() else 'nera'})")
+    st.caption(f"Backup aplankas: {backup_dir}")
+    if st.button("Sukurti DB atsargine kopija"):
+        try:
+            backup_path = create_backup(label="manual")
+            if backup_path is None:
+                st.warning("DB dar nesukurta - kopija nesukurta.")
+            else:
+                st.success(f"Atsargine kopija sukurta: {backup_path.name}")
+        except Exception as e:
+            st.error(f"Nepavyko sukurti kopijos: {e}")
 
-        st.markdown("##### Atkurti is backup")
-        backups = list_backups(db_path)
-        if not backups:
-            st.caption("Backup failu dar nera.")
-        else:
-            backup_labels = [b.name for b in backups]
-            selected_backup = st.selectbox("Pasirink backup", backup_labels, key="restore_backup_select")
-            confirm_restore = st.checkbox("Patvirtinu atkurima", value=False, key="confirm_restore_db")
-            if st.button("Atkurti is backup"):
-                if not confirm_restore:
-                    st.warning("Patvirtink atkurima checkbox'u.")
-                else:
-                    try:
-                        session.close()
-                    except Exception:
-                        pass
-                    try:
-                        restore_backup(backup_path=backup_dir / selected_backup, db_path=db_path)
-                        st.success("DB atkurta. Programa perkraunama.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"Nepavyko atkurti backup: {e}")
-
-    with col_right:
-        st.markdown("#### WC CSV importas")
-        st.caption("Ikelk naujausi WC CSV ir atnaujink DB.")
-        csv_upload = st.file_uploader("Pasirink WC CSV faila", type=["csv"])
-        csv_path = st.text_input("Arba WC CSV kelias (lokaliai)", value="")
-        if st.button("Importuoti WC CSV"):
-            if csv_upload is None and not csv_path.strip():
-                st.warning("Pasirink CSV faila arba nurodyk kelia.")
+    st.markdown("##### Atkurti is backup")
+    backups = list_backups(db_path)
+    if not backups:
+        st.caption("Backup failu dar nera.")
+    else:
+        backup_labels = [b.name for b in backups]
+        selected_backup = st.selectbox("Pasirink backup", backup_labels, key="restore_backup_select")
+        confirm_restore = st.checkbox("Patvirtinu atkurima", value=False, key="confirm_restore_db")
+        if st.button("Atkurti is backup"):
+            if not confirm_restore:
+                st.warning("Patvirtink atkurima checkbox'u.")
             else:
                 try:
-                    csv_bytes = csv_upload.getvalue() if csv_upload is not None else None
-                    result = merge_wc_csv(csv_path=csv_path.strip() or None, csv_bytes=csv_bytes)
-                    st.success(f"CSV importas baigtas. Nauju: {result['new']}, atnaujinta: {result['updated']}.")
+                    session.close()
+                except Exception:
+                    pass
+                try:
+                    restore_backup(backup_path=backup_dir / selected_backup, db_path=db_path)
+                    st.success("DB atkurta. Programa perkraunama.")
                     st.rerun()
                 except Exception as e:
-                    st.error(f"CSV importo klaida: {e}")
+                    st.error(f"Nepavyko atkurti backup: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
+    st.markdown('<div class="panel-title">Duomenu importas</div>', unsafe_allow_html=True)
+    st.markdown("#### WC CSV importas")
+    st.caption("Ikelk naujausi WC CSV ir atnaujink DB.")
+    csv_upload = st.file_uploader("Pasirink WC CSV faila", type=["csv"])
+    csv_path = st.text_input("Arba WC CSV kelias (lokaliai)", value="")
+    if st.button("Importuoti WC CSV"):
+        if csv_upload is None and not csv_path.strip():
+            st.warning("Pasirink CSV faila arba nurodyk kelia.")
+        else:
+            try:
+                csv_bytes = csv_upload.getvalue() if csv_upload is not None else None
+                result = merge_wc_csv(csv_path=csv_path.strip() or None, csv_bytes=csv_bytes)
+                st.success(f"CSV importas baigtas. Nauju: {result['new']}, atnaujinta: {result['updated']}.")
+                st.rerun()
+            except Exception as e:
+                st.error(f"CSV importo klaida: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown('<div class="section-title">Duomenu perziura</div>', unsafe_allow_html=True)
