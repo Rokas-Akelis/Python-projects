@@ -8,6 +8,7 @@ from models import get_default_db_path
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = get_default_db_path()
+BACKUP_ROOT = BASE_DIR / "backup"
 
 
 def get_db_path() -> Path:
@@ -21,11 +22,13 @@ def _resolve_backup_dir(db_path: Path | None = None) -> Path:
     env_dir = os.getenv("INVENTORY_BACKUP_DIR")
     if env_dir:
         return Path(env_dir)
-    db_path = db_path or get_db_path()
-    base_dir = db_path.parent
+    base_dir = BACKUP_ROOT
     if not os.access(base_dir, os.W_OK):
-        base_dir = Path(tempfile.gettempdir())
-    return base_dir / "backups"
+        db_path = db_path or get_db_path()
+        base_dir = db_path.parent
+        if not os.access(base_dir, os.W_OK):
+            base_dir = Path(tempfile.gettempdir())
+    return base_dir
 
 
 def get_backup_dir(db_path: Path | None = None) -> Path:
@@ -37,7 +40,7 @@ BACKUP_DIR = get_backup_dir()
 
 def ensure_backup_dir(db_path: Path | None = None) -> Path:
     backup_dir = get_backup_dir(db_path)
-    backup_dir.mkdir(exist_ok=True)
+    backup_dir.mkdir(parents=True, exist_ok=True)
     return backup_dir
 
 
@@ -63,3 +66,24 @@ def create_backup(label: str = "", db_path: Path | None = None, backup_dir: Path
     shutil.copy2(db_path, latest)
 
     return target
+
+
+def list_backups(db_path: Path | None = None) -> list[Path]:
+    backup_dir = get_backup_dir(db_path)
+    if not backup_dir.exists():
+        return []
+    return sorted(
+        backup_dir.glob("inventory*.bak"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+
+
+def restore_backup(backup_path: Path | str, db_path: Path | None = None) -> Path:
+    db_path = db_path or get_db_path()
+    backup_path = Path(backup_path)
+    if not backup_path.exists():
+        raise FileNotFoundError(f"Backup failas nerastas: {backup_path}")
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(backup_path, db_path)
+    return db_path

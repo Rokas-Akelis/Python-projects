@@ -29,8 +29,20 @@ class TestSyncToWC(unittest.TestCase):
             tmp_path = Path(tmpdir)
             session = _make_session(tmp_path)
             try:
-                session.add(models.Product(name="P1", wc_id=1, price=10.0, quantity=5, active=True))
-                session.add(models.Product(name="P2", wc_id=2, price=20.0, quantity=6, active=True))
+                session.add(models.WcProductRaw(wc_id=1, raw={"name": "P1"}))
+                session.add(models.WcProductRaw(wc_id=2, raw={"name": "P2"}))
+                session.add(
+                    models.WcProductEdit(
+                        wc_id=1,
+                        edits={"regular_price": 10.0, "stock_quantity": 5, "manage_stock": True},
+                    )
+                )
+                session.add(
+                    models.WcProductEdit(
+                        wc_id=2,
+                        edits={"regular_price": 20.0},
+                    )
+                )
                 session.commit()
 
                 updates = []
@@ -38,9 +50,6 @@ class TestSyncToWC(unittest.TestCase):
                 class FakeWoo:
                     def __init__(self, base_url, consumer_key, consumer_secret):
                         pass
-
-                    def get_product(self, wc_id):
-                        return {"type": "simple", "regular_price": "1.0", "stock_quantity": 1}
 
                     def update_products_batch(self, payload):
                         updates.extend(payload)

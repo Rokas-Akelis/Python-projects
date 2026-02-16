@@ -16,7 +16,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 Base = declarative_base()
 BASE_DIR = Path(__file__).parent
-DB_PATH = BASE_DIR / "inventory.db"
+DB_PATH = BASE_DIR / "backup" / "inventory.db"
 
 
 def _is_writable_path(path: Path) -> bool:
@@ -71,6 +71,14 @@ class WcProductRaw(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     wc_id = Column(Integer, nullable=True, index=True, unique=True)
     raw = Column(JSON, nullable=False)
+
+
+class WcProductEdit(Base):
+    __tablename__ = "wc_product_edits"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    wc_id = Column(Integer, nullable=False, index=True, unique=True)
+    edits = Column(JSON, nullable=False, default=dict)
 
 
 def get_engine(db_path=None):

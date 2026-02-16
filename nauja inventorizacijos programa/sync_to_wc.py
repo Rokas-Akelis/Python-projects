@@ -1,8 +1,9 @@
 # sync_to_wc.py
 import os
-from models import get_session, Product, Movement, WcProductRaw
+from models import get_session, Product, Movement, WcProductRaw, WcProductEdit
 from woo_client import WooClient
 from backup_utils import create_backup
+from wc_fields import WC_EDIT_FIELDS
 
 WC_BASE_URL = os.getenv("WC_BASE_URL")
 WC_CK = os.getenv("WC_CK")
@@ -50,6 +51,7 @@ def _normalize_wc_sync_ids(value) -> set[int]:
 
 DEFAULT_WC_SYNC_IDS = _normalize_wc_sync_ids(WC_SYNC_IDS_RAW)
 WC_BATCH_SIZE = _parse_batch_size(WC_BATCH_SIZE_RAW, default=100)
+WC_EDIT_FIELD_KEYS = {spec["key"] for spec in WC_EDIT_FIELDS}
 
 
 def _wc_id_allowed(wc_id, allowed_ids: set[int]) -> bool:
@@ -102,22 +104,68 @@ def _extract_raw_price_qty(raw):
     return price, qty, raw_type
 
 
-def _update_raw_after_push(session, wc_id, raw_obj, price, quantity):
+def _apply_edits_to_raw(raw: dict, edits: dict) -> dict:
+    if not isinstance(raw, dict):
+        raw = {}
+    for key, value in edits.items():
+        if key not in WC_EDIT_FIELD_KEYS:
+            continue
+        if value is None:
+            continue
+        if key.startswith("dimensions."):
+            dims = raw.get("dimensions")
+            if not isinstance(dims, dict):
+                dims = {}
+            part = key.split(".", 1)[1]
+            dims[part] = str(value)
+            raw["dimensions"] = dims
+            continue
+        if key in {"regular_price", "sale_price"}:
+            raw[key] = str(value)
+            continue
+        if key == "stock_quantity":
+            raw[key] = int(value)
+            continue
+        if key == "manage_stock":
+            raw[key] = bool(value)
+            continue
+        raw[key] = value
+    return raw
+
+
+def _build_wc_payload_from_edits(edits: dict) -> dict:
+    payload = {}
+    dimensions = {}
+    for key, value in edits.items():
+        if key not in WC_EDIT_FIELD_KEYS:
+            continue
+        if value is None:
+            continue
+        if key.startswith("dimensions."):
+            part = key.split(".", 1)[1]
+            dimensions[part] = str(value)
+            continue
+        if key in {"regular_price", "sale_price"}:
+            payload[key] = str(value)
+            continue
+        if key == "stock_quantity":
+            payload[key] = int(value)
+            continue
+        if key == "manage_stock":
+            payload[key] = bool(value)
+            continue
+        payload[key] = value
+
+    if dimensions:
+        payload["dimensions"] = dimensions
+    return payload
+
+
+def _update_raw_after_push(session, wc_id, raw_obj, edits: dict):
     raw = raw_obj.raw if raw_obj and isinstance(raw_obj.raw, dict) else {}
     if not raw:
         raw = {"id": wc_id}
-
-    if price is not None:
-        if "regular_price" in raw or "Reguliari kaina" not in raw:
-            raw["regular_price"] = str(price)
-        if "Reguliari kaina" in raw:
-            raw["Reguliari kaina"] = price
-
-    if quantity is not None:
-        if "stock_quantity" in raw or "Atsargos" not in raw:
-            raw["stock_quantity"] = int(quantity)
-        if "Atsargos" in raw:
-            raw["Atsargos"] = int(quantity)
+    raw = _apply_edits_to_raw(raw, edits)
 
     if raw_obj:
         raw_obj.raw = raw
@@ -125,8 +173,130 @@ def _update_raw_after_push(session, wc_id, raw_obj, price, quantity):
         session.add(WcProductRaw(wc_id=wc_id, raw=raw))
 
 
-def sync_prices_and_stock_to_wc(allowed_wc_ids=None, batch_size=None):
+def sync_wc_edits_to_wc(allowed_wc_ids=None, batch_size=None):
     session = get_session()
+
+    if not (WC_BASE_URL and WC_CK and WC_CS):
+        raise RuntimeError("WC_BASE_URL/WC_CK/WC_CS not set")
+    woo = WooClient(base_url=WC_BASE_URL, consumer_key=WC_CK, consumer_secret=WC_CS)
+
+    allowed_ids = DEFAULT_WC_SYNC_IDS if allowed_wc_ids is None else _normalize_wc_sync_ids(allowed_wc_ids)
+    if allowed_ids:
+        print(f"Filtras aktyvus (WC_SYNC_IDS): {sorted(allowed_ids)}")
+
+    batch_size = _parse_batch_size(batch_size, default=WC_BATCH_SIZE)
+    raw_rows = session.query(WcProductRaw).all()
+    raw_by_wc = {r.wc_id: r for r in raw_rows if r.wc_id}
+    edit_rows = session.query(WcProductEdit).all()
+    if not edit_rows:
+        print("Nera pakeitimu sinchronizavimui.")
+        return
+
+    batch_updates = []
+    batch_meta = {}
+    raw_dirty = False
+    edits_dirty = False
+
+    def flush_batch():
+        nonlocal raw_dirty, edits_dirty
+        if not batch_updates:
+            return
+        try:
+            result = woo.update_products_batch(batch_updates)
+        except Exception as e:
+            print(f"Klaida WC batch atnaujinant {len(batch_updates)} produktu: {e}")
+            batch_updates.clear()
+            batch_meta.clear()
+            return
+
+        if isinstance(result, dict):
+            update_items = result.get("update") or []
+        elif isinstance(result, list):
+            update_items = result
+        else:
+            update_items = []
+
+        success_ids = set()
+        error_ids = set()
+        for item in update_items:
+            if not isinstance(item, dict):
+                continue
+            wc_id = item.get("id")
+            try:
+                wc_id = int(wc_id)
+            except Exception:
+                continue
+            if "error" in item:
+                error_ids.add(wc_id)
+                err = item.get("error")
+                msg = err.get("message") if isinstance(err, dict) else str(err)
+                print(f"Klaida WC atnaujinant (ID={wc_id}): {msg}")
+                continue
+            success_ids.add(wc_id)
+
+        if not update_items:
+            print(f"WC batch atsakymas tuscias, nepatvirtinti {len(batch_updates)} atnaujinimai.")
+
+        for wc_id, meta in batch_meta.items():
+            if update_items:
+                if wc_id in error_ids:
+                    continue
+                if success_ids and wc_id not in success_ids:
+                    print(f"WC ID={wc_id}: atnaujinimas nepatvirtintas, DB nelieciama.")
+                    continue
+            else:
+                continue
+
+            edits = meta["edits"]
+            changed_keys = ", ".join(sorted(edits.keys())) if edits else "-"
+            print(f"OK. WC_ID={wc_id} atnaujinta: {changed_keys}")
+
+            _update_raw_after_push(session, wc_id, meta["raw_obj"], edits)
+            if meta.get("edit_obj") is not None:
+                session.delete(meta["edit_obj"])
+            raw_dirty = True
+            edits_dirty = True
+
+        batch_updates.clear()
+        batch_meta.clear()
+
+    for edit in edit_rows:
+        wc_id = getattr(edit, "wc_id", None)
+        if not wc_id:
+            continue
+        if not _wc_id_allowed(wc_id, allowed_ids):
+            continue
+        raw_obj = raw_by_wc.get(wc_id)
+        if raw_obj is None:
+            print(f"WC ID={wc_id}: nerasta importuotu duomenu, praleidziama.")
+            continue
+
+        edits = edit.edits or {}
+        if not isinstance(edits, dict) or not edits:
+            continue
+
+        payload = _build_wc_payload_from_edits(edits)
+        if not payload:
+            continue
+
+        payload["id"] = int(wc_id)
+        batch_updates.append(payload)
+        batch_meta[int(wc_id)] = {
+            "raw_obj": raw_obj,
+            "edit_obj": edit,
+            "edits": edits,
+        }
+
+        if len(batch_updates) >= batch_size:
+            flush_batch()
+
+    flush_batch()
+    if raw_dirty or edits_dirty:
+        session.commit()
+
+
+def sync_prices_and_stock_to_wc(allowed_wc_ids=None, batch_size=None):
+    return sync_wc_edits_to_wc(allowed_wc_ids=allowed_wc_ids, batch_size=batch_size)
 
     if not (WC_BASE_URL and WC_CK and WC_CS):
         raise RuntimeError("WC_BASE_URL/WC_CK/WC_CS not set")
@@ -338,11 +508,8 @@ def pull_products_from_wc():
                 price = float(price_raw) if price_raw not in ("", None) else None
             except Exception:
                 price = None
-            quantity = item.get("stock_quantity")
-            try:
-                quantity = int(quantity) if quantity is not None else 0
-            except Exception:
-                quantity = 0
+            quantity_raw = item.get("stock_quantity")
+            quantity = _to_int(quantity_raw) if quantity_raw is not None else None
             sku = item.get("sku") or None
 
             norm = normalize(name)
@@ -368,18 +535,19 @@ def pull_products_from_wc():
                     product.wc_id = wc_id
                     by_wc_id[wc_id] = product
                 # judesio zurnalas tik jei keiciasi kiekis
-                old_qty = product.quantity or 0
-                if quantity != old_qty:
-                    session.add(Movement(
-                        product_id=product.id,
-                        change=quantity - old_qty,
-                        source="wc_pull",
-                        note="Atnaujinta is WC",
-                    ))
-                product.name = product.name or name
+                if quantity is not None:
+                    old_qty = product.quantity or 0
+                    if quantity != old_qty:
+                        session.add(Movement(
+                            product_id=product.id,
+                            change=quantity - old_qty,
+                            source="wc_pull",
+                            note="Atnaujinta is WC",
+                        ))
+                    product.quantity = quantity
+                product.name = name
                 product.sku = sku or product.sku
                 product.price = price
-                product.quantity = quantity
 
             # raw saugojimas
             raw = session.query(WcProductRaw).filter(WcProductRaw.wc_id == wc_id).one_or_none()

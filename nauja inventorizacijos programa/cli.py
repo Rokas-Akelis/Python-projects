@@ -27,7 +27,7 @@ def main(argv=None):
     parser.add_argument(
         "--push-wc",
         action="store_true",
-        help="Is DB nusiusti kainas/kiekius i WooCommerce API.",
+        help="Is DB nusiusti tik ranka pakeistus WC laukus i WooCommerce API.",
     )
     parser.add_argument(
         "--backup",
