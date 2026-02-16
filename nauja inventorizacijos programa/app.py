@@ -269,23 +269,24 @@ def apply_theme():
     st.markdown(
         """
         <style>
-        @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Source+Serif+4:wght@500;600;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Urbanist:wght@300;400;500;600;700&display=swap");
 
         :root {
-          --bg: #f5f3ef;
-          --surface: #fdfdfc;
-          --surface-2: #f2efea;
-          --text: #111111;
-          --muted: #5f5b56;
-          --accent: #111827;
-          --accent-2: #0f766e;
-          --border: rgba(17, 17, 17, 0.12);
-          --shadow: 0 22px 60px rgba(15, 15, 15, 0.12);
+          --bg: #f7f2ec;
+          --surface: #fdfbf9;
+          --surface-2: #f2ece4;
+          --text: #1a1511;
+          --muted: #6c6259;
+          --accent: #1f1a15;
+          --accent-2: #c89f6d;
+          --accent-3: #8c6b45;
+          --border: rgba(26, 21, 17, 0.12);
+          --shadow: 0 24px 60px rgba(26, 21, 17, 0.12);
           --radius: 22px;
         }
 
         html, body, [class*="css"] {
-          font-family: "Space Grotesk", "Segoe UI", "Calibri", sans-serif;
+          font-family: "Urbanist", "Segoe UI", "Calibri", sans-serif;
           color: var(--text);
         }
 
@@ -295,9 +296,9 @@ def apply_theme():
 
         .stApp {
           background:
-            radial-gradient(900px circle at 90% 5%, rgba(15, 118, 110, 0.12), transparent 60%),
-            radial-gradient(700px circle at 8% 0%, rgba(17, 17, 17, 0.08), transparent 55%),
-            linear-gradient(180deg, #f9f7f4 0%, var(--bg) 100%);
+            radial-gradient(900px circle at 90% 10%, rgba(200, 159, 109, 0.14), transparent 60%),
+            radial-gradient(700px circle at 6% 0%, rgba(26, 21, 17, 0.08), transparent 55%),
+            linear-gradient(180deg, #fbf7f2 0%, var(--bg) 100%);
         }
 
         .block-container {
@@ -305,91 +306,97 @@ def apply_theme():
           max-width: 1320px;
         }
 
-        h1, h2, h3, .brand-title {
-          font-family: "Source Serif 4", "Times New Roman", serif;
-          letter-spacing: 0.01em;
+        h1, h2, h3, .lux-title {
+          font-family: "Fraunces", "Times New Roman", serif;
+          letter-spacing: 0.02em;
         }
 
-        .topbar {
-          display: flex;
-          justify-content: space-between;
+        .lux-header {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 1.2rem;
           align-items: center;
-          gap: 1rem;
           background: var(--surface);
           border: 1px solid var(--border);
-          border-radius: 24px;
-          padding: 1.6rem 1.8rem;
+          border-radius: 26px;
+          padding: 1.8rem 2rem;
           box-shadow: var(--shadow);
-          margin-bottom: 1.4rem;
+          margin-bottom: 1.6rem;
         }
 
-        .brand-title {
-          font-size: 2rem;
-          margin-bottom: 0.2rem;
+        .lux-title {
+          font-size: 2.1rem;
+          margin-bottom: 0.3rem;
         }
 
-        .brand-subtitle {
+        .lux-subtitle {
           color: var(--muted);
           max-width: 640px;
         }
 
-        .status-row {
+        .lux-metrics {
           display: flex;
           flex-wrap: wrap;
-          gap: 0.5rem;
+          gap: 0.6rem;
           justify-content: flex-end;
         }
 
-        .pill {
-          padding: 0.35rem 0.8rem;
-          border-radius: 999px;
-          border: 1px solid rgba(17, 17, 17, 0.14);
+        .metric {
           background: var(--surface-2);
-          font-size: 0.72rem;
+          border: 1px solid rgba(26, 21, 17, 0.12);
+          border-radius: 999px;
+          padding: 0.4rem 0.9rem;
+          display: inline-flex;
+          gap: 0.4rem;
+          align-items: center;
+          font-size: 0.8rem;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
-          letter-spacing: 0.16em;
+        }
+
+        .metric span {
+          font-weight: 600;
         }
 
         .section-title {
-          font-size: 0.75rem;
+          font-size: 0.72rem;
           text-transform: uppercase;
-          letter-spacing: 0.2em;
+          letter-spacing: 0.22em;
           color: var(--muted);
-          margin: 0.4rem 0 0.8rem;
+          margin: 0.5rem 0 0.9rem;
         }
 
-        .card-grid {
+        .lux-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-          gap: 1.2rem;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 1.3rem;
         }
 
-        .card {
+        .lux-card {
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: var(--radius);
-          padding: 1.2rem 1.4rem;
+          padding: 1.3rem 1.5rem;
           box-shadow: var(--shadow);
         }
 
-        .card-title {
+        .lux-card h4 {
+          margin: 0 0 0.4rem;
           font-size: 1.1rem;
-          font-weight: 600;
-          margin-bottom: 0.4rem;
         }
 
-        .card-meta {
+        .lux-card p {
           color: var(--muted);
-          margin-bottom: 0.9rem;
+          margin: 0 0 0.9rem;
         }
 
         .stButton button {
-          background: linear-gradient(135deg, var(--accent), #1f2937);
+          background: linear-gradient(135deg, var(--accent), var(--accent-3));
           color: #ffffff !important;
           border: none;
-          padding: 0.7rem 1.3rem;
+          padding: 0.7rem 1.35rem;
           border-radius: 999px;
-          box-shadow: 0 12px 26px rgba(15, 15, 15, 0.24);
+          box-shadow: 0 12px 26px rgba(26, 21, 17, 0.26);
           transition: transform 140ms ease, box-shadow 140ms ease;
         }
 
@@ -399,7 +406,7 @@ def apply_theme():
 
         .stButton button:hover {
           transform: translateY(-1px);
-          box-shadow: 0 18px 32px rgba(15, 15, 15, 0.28);
+          box-shadow: 0 18px 34px rgba(26, 21, 17, 0.3);
         }
 
         div[data-testid="stTextInput"] input,
@@ -428,11 +435,10 @@ def apply_theme():
         }
 
         @media (max-width: 980px) {
-          .topbar {
-            flex-direction: column;
-            align-items: flex-start;
+          .lux-header {
+            grid-template-columns: 1fr;
           }
-          .status-row {
+          .lux-metrics {
             justify-content: flex-start;
           }
         }
@@ -479,17 +485,17 @@ def main():
 
     st.markdown(
         f"""
-        <div class="topbar">
+        <div class="lux-header">
           <div>
-            <div class="brand-title">Inventorizacijos Studio</div>
-            <div class="brand-subtitle">
-              Moderni WooCommerce prekiu valdymo aplinka. Sistema siuncia tik tavo ranka pakeistus duomenis.
+            <div class="lux-title">Premium Retail Inventory</div>
+            <div class="lux-subtitle">
+              Profesionali aplinka WooCommerce prekiu redagavimui. Sistema siuncia tik tavo patvirtintus pakeitimus.
             </div>
           </div>
-          <div class="status-row">
-            <span class="pill">Produktai: {total_products}</span>
-            <span class="pill">Pakeitimai: {pending_count}</span>
-            <span class="pill">DB: {"YRA" if db_path.exists() else "NERA"}</span>
+          <div class="lux-metrics">
+            <div class="metric">Produktai <span>{total_products}</span></div>
+            <div class="metric">Pakeitimai <span>{pending_count}</span></div>
+            <div class="metric">DB <span>{"YRA" if db_path.exists() else "NERA"}</span></div>
           </div>
         </div>
         """,
@@ -502,13 +508,13 @@ def main():
             st.session_state.authed = False
             st.rerun()
 
-    st.markdown('<div class="section-title">Veiksmai</div>', unsafe_allow_html=True)
-    st.markdown('<div class="card-grid">', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Operacijos</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lux-grid">', unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">Importuoti is WC</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>Importuoti is WC</h4>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="card-meta">Atsiuncia produktus is WooCommerce API ir paruosia redagavimui.</div>',
+        '<p>Atsiuncia produktus is WooCommerce API ir paruosia redagavimui.</p>',
         unsafe_allow_html=True,
     )
     confirm_pull = st.checkbox("Patvirtinu importa", value=False, key="confirm_pull_wc_primary")
@@ -524,10 +530,10 @@ def main():
                 st.error(f"Importo klaida: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">Siusti pakeitimus</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>Siusti pakeitimus</h4>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="card-meta">Siunciami tik tavo redaguoti laukai. Tuscios reiksmes nesiunciamos.</div>',
+        '<p>Siunciami tik tavo redaguoti laukai. Tuscios reiksmes nesiunciamos.</p>',
         unsafe_allow_html=True,
     )
     sync_ids_text = st.text_input(
@@ -547,10 +553,10 @@ def main():
                 st.error(f"Sinchronizacijos klaida: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">Atsargines kopijos</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>Atsargines kopijos</h4>', unsafe_allow_html=True)
     st.markdown(
-        f'<div class="card-meta">DB kelias: {db_path} | Backup: {backup_dir}</div>',
+        f'<p>DB kelias: {db_path} | Backup: {backup_dir}</p>',
         unsafe_allow_html=True,
     )
     if st.button("Sukurti DB kopija", key="btn_backup_create"):
@@ -590,10 +596,10 @@ def main():
 
     st.markdown("---")
     st.markdown('<div class="section-title">Redagavimas</div>', unsafe_allow_html=True)
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    st.markdown('<div class="card-title">WC lauku redagavimas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    st.markdown('<h4>WC lauku redagavimas</h4>', unsafe_allow_html=True)
     st.markdown(
-        '<div class="card-meta">Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</div>',
+        '<p>Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</p>',
         unsafe_allow_html=True,
     )
     edit_df = load_wc_edit_df(session)
