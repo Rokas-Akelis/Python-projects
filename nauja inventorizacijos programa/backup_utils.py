@@ -8,7 +8,7 @@ from models import get_default_db_path
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = get_default_db_path()
-BACKUP_ROOT = BASE_DIR / "backup"
+BACKUP_ROOT = BASE_DIR / "backups"
 
 
 def get_db_path() -> Path:
