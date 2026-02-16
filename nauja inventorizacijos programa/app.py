@@ -587,10 +587,7 @@ def main():
                     st.error(f"Sinchronizacijos klaida: {e}")
 
         st.markdown('<h4>Atsargines kopijos</h4>', unsafe_allow_html=True)
-        st.markdown(
-            f'<p>DB kelias: {db_path} | Backup: {backup_dir}</p>',
-            unsafe_allow_html=True,
-        )
+        # DB kelias/backup info paslepta pagal UI pageidavima
         if st.button("Sukurti DB kopija", key="btn_backup_create"):
             try:
                 backup_path = create_backup(label="manual")
@@ -623,7 +620,6 @@ def main():
                     except Exception as e:
                         st.error(f"Nepavyko atkurti backup: {e}")
 
-    st.markdown('<div class="section-title">Redagavimas</div>', unsafe_allow_html=True)
     st.markdown('<div class="lux-card">', unsafe_allow_html=True)
     st.markdown('<h4>WC lauku redagavimas</h4>', unsafe_allow_html=True)
     st.markdown(
