@@ -8,7 +8,6 @@ from datetime import date, datetime
 
 from models import get_session, Product, Movement, WcProductRaw, WcProductEdit
 from sync_to_wc import sync_prices_and_stock_to_wc, pull_products_from_wc  # naudosim jau tureta funkcija.
-from bootstrap import merge_wc_csv
 from backup_utils import create_backup, get_db_path, get_backup_dir, list_backups, restore_backup
 from wc_fields import WC_EDIT_FIELDS, get_raw_value
 
@@ -270,23 +269,23 @@ def apply_theme():
     st.markdown(
         """
         <style>
-        @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Sora:wght@300;400;500;600;700&display=swap");
 
         :root {
-          --bg: #f3f1ee;
-          --surface: #fbfbfa;
-          --surface-2: #f1efec;
-          --text: #151515;
-          --muted: #5c5c5c;
-          --accent: #0a0a0a;
-          --accent-2: #8b5cf6;
-          --border: rgba(21, 21, 21, 0.12);
-          --shadow: 0 22px 60px rgba(15, 12, 10, 0.12);
+          --bg: #f4f2ee;
+          --surface: #fcfcfb;
+          --surface-2: #f2f0ec;
+          --text: #111111;
+          --muted: #5a5957;
+          --accent: #121212;
+          --accent-2: #0f766e;
+          --border: rgba(17, 17, 17, 0.12);
+          --shadow: 0 20px 50px rgba(17, 17, 17, 0.12);
           --radius: 22px;
         }
 
         html, body, [class*="css"] {
-          font-family: "Inter", "Segoe UI", "Calibri", sans-serif;
+          font-family: "Sora", "Segoe UI", "Calibri", sans-serif;
           color: var(--text);
         }
 
@@ -296,8 +295,8 @@ def apply_theme():
 
         .stApp {
           background:
-            radial-gradient(900px circle at 90% 5%, rgba(139, 92, 246, 0.10), transparent 60%),
-            radial-gradient(700px circle at 10% 0%, rgba(17, 24, 39, 0.08), transparent 55%),
+            radial-gradient(900px circle at 90% 5%, rgba(15, 118, 110, 0.12), transparent 60%),
+            radial-gradient(700px circle at 8% 0%, rgba(17, 17, 17, 0.08), transparent 55%),
             linear-gradient(180deg, #f8f7f4 0%, var(--bg) 100%);
         }
 
@@ -307,7 +306,7 @@ def apply_theme():
         }
 
         h1, h2, h3, .hero-title {
-          font-family: "Playfair Display", "Times New Roman", serif;
+          font-family: "Cormorant Garamond", "Times New Roman", serif;
           letter-spacing: 0.01em;
         }
 
@@ -382,13 +381,17 @@ def apply_theme():
         }
 
         .stButton button {
-          background: linear-gradient(135deg, var(--accent), #27272a);
-          color: #fff;
+          background: linear-gradient(135deg, var(--accent), #2a2a2a);
+          color: #ffffff;
           border: none;
           padding: 0.7rem 1.3rem;
           border-radius: 999px;
           box-shadow: 0 12px 26px rgba(15, 15, 15, 0.24);
           transition: transform 140ms ease, box-shadow 140ms ease;
+        }
+
+        .stButton button * {
+          color: #ffffff !important;
         }
 
         .stButton button:hover {
@@ -475,7 +478,7 @@ def main():
           </div>
           <div class="hero-badges">
             <span class="badge">WC API</span>
-            <span class="badge">CSV Import</span>
+            <span class="badge">Edit</span>
             <span class="badge">Backup</span>
           </div>
         </div>
@@ -530,27 +533,26 @@ def main():
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown('<div class="panel">', unsafe_allow_html=True)
-    st.markdown('<div class="panel-title">Duomenu importas</div>', unsafe_allow_html=True)
-    st.markdown("#### WC CSV importas")
-    st.caption("Ikelk naujausi WC CSV ir atnaujink DB.")
-    csv_upload = st.file_uploader("Pasirink WC CSV faila", type=["csv"])
-    csv_path = st.text_input("Arba WC CSV kelias (lokaliai)", value="")
-    if st.button("Importuoti WC CSV"):
-        if csv_upload is None and not csv_path.strip():
-            st.warning("Pasirink CSV faila arba nurodyk kelia.")
+    st.markdown('<div class="panel-title">WC API</div>', unsafe_allow_html=True)
+    st.markdown("#### Importuoti is WC")
+    st.caption("Atsiunčia produktus is WooCommerce API ir paruošia redagavimui.")
+    confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc_primary")
+    if st.button("Importuoti is WC"):
+        if not confirm_pull:
+            st.warning("Patvirtink importa checkbox'u.")
         else:
             try:
-                csv_bytes = csv_upload.getvalue() if csv_upload is not None else None
-                result = merge_wc_csv(csv_path=csv_path.strip() or None, csv_bytes=csv_bytes)
-                st.success(f"CSV importas baigtas. Nauju: {result['new']}, atnaujinta: {result['updated']}.")
+                pull_products_from_wc()
+                st.success("Importas is WC baigtas.")
                 st.rerun()
             except Exception as e:
-                st.error(f"CSV importo klaida: {e}")
+                st.error(f"Importo klaida: {e}")
     st.markdown("</div>", unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
     st.markdown('<div class="section-title">Duomenu perziura</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
     st.markdown("#### WC lauku redagavimas")
     edit_df = load_wc_edit_df(session)
     if edit_df.empty:
@@ -653,82 +655,34 @@ def main():
             session.commit()
             pending_after = session.query(WcProductEdit).count()
             st.success(f"WC pakeitimai issaugoti. Laukiantys: {pending_after}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
     st.markdown("---")
 
     st.markdown("---")
-    st.markdown('<div class="section-title">WC integracija</div>', unsafe_allow_html=True)
-    col_sync, col_pull = st.columns(2, gap="large")
-    with col_sync:
-        st.markdown("#### Sinchronizacija i WC")
-        st.write(
-            "Sis mygtukas i WooCommerce issiuncia tik ranka pakeistus laukus is redagavimo lenteles "
-            "(tik toms prekems, kurios buvo importuotos is WC)."
-        )
-        sync_ids_text = st.text_input(
-            "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
-            value=os.getenv("WC_SYNC_IDS", ""),
-            key="sync_wc_ids",
-        )
-        confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
-        if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
-            if not confirm_push:
-                st.warning("Patvirtink siuntima checkbox'u.")
-            else:
-                try:
-                    sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)  # viduje pati susikurs WooClient ir sesija.
-                    st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
-                except Exception as e:
-                    st.error(f"Sinchronizacijos klaida: {e}")
-
-    with col_pull:
-        st.markdown("#### Importuoti is WC")
-        st.write("Nuskaito produktus is WC API ir atnaujina DB (prideda naujus, atnaujina kainas/kiekius).")
-        confirm_pull = st.checkbox("Patvirtinu importa is WC", value=False, key="confirm_pull_wc")
-        if st.button("Importuoti is WC"):
-            if not confirm_pull:
-                st.warning("Patvirtink importa checkbox'u.")
-            else:
-                try:
-                    pull_products_from_wc()
-                    st.success("Importas is WC baigtas.")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Importo klaida: {e}")
-
-    st.markdown("---")
-
-    st.markdown("---")
-    st.markdown('<div class="section-title">Valdymas</div>', unsafe_allow_html=True)
-    st.markdown("#### Istrinti produktus")
-    products_list = session.query(Product).all()
-    options = {f"{p.name} (id={p.id})": p.id for p in products_list}
-    selected_labels = st.multiselect("Pasirink produktus istrynimui", list(options.keys()))
-    confirm_delete = st.checkbox("Patvirtinu trynima", value=False, key="confirm_delete")
-    if st.button("Istrinti pazymetus"):
-        selected_ids = [options[label] for label in selected_labels]
-        if not selected_ids:
-            st.info("Nepasirinktas nei vienas produktas.")
-        elif not confirm_delete:
-            st.warning("Patvirtink trynima checkbox'u.")
+    st.markdown('<div class="section-title">WC sinchronizavimas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
+    st.markdown("#### Sinchronizacija i WC")
+    st.write(
+        "Sis mygtukas i WooCommerce issiuncia tik ranka pakeistus laukus is redagavimo lenteles "
+        "(tik toms prekems, kurios buvo importuotos is WC)."
+    )
+    sync_ids_text = st.text_input(
+        "WC ID filtras (pvz.: 4117,4140). Palik tuscia, jei nori siusti visus.",
+        value=os.getenv("WC_SYNC_IDS", ""),
+        key="sync_wc_ids",
+    )
+    confirm_push = st.checkbox("Patvirtinu siuntima i WC", value=False, key="confirm_push_wc")
+    if st.button("Sinchronizuoti su svetaine (WooCommerce)"):
+        if not confirm_push:
+            st.warning("Patvirtink siuntima checkbox'u.")
         else:
             try:
-                create_backup(label="before_delete")
+                sync_prices_and_stock_to_wc(allowed_wc_ids=sync_ids_text)
+                st.success("OK. Sinchronizacija su WooCommerce baigta (ziurek log'us).")
             except Exception as e:
-                st.error(f"Nepavyko sukurti kopijos: {e}")
-                st.stop()
-            session.query(Movement).filter(Movement.product_id.in_(selected_ids)).delete(synchronize_session=False)
-            session.query(Product).filter(Product.id.in_(selected_ids)).delete(synchronize_session=False)
-            session.commit()
-            st.success("Pasirinkti produktai istrinti.")
-            st.rerun()
-
-    st.markdown("#### Judejimu zurnalas (paskutiniai 50)")
-    moves_df = load_movements_df(session)
-    if moves_df.empty:
-        st.info("Judejimu dar nera.")
-    else:
-        st.dataframe(moves_df, hide_index=True, width="stretch")
+                st.error(f"Sinchronizacijos klaida: {e}")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 if __name__ == "__main__":
