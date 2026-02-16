@@ -440,6 +440,19 @@ def apply_theme():
           margin-bottom: 1.6rem;
         }
 
+        .wc-raw-marker {
+          display: none;
+        }
+
+        div[data-testid="stVerticalBlock"]:has(.wc-raw-marker) {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          padding: 1.3rem 1.5rem;
+          box-shadow: var(--shadow);
+          margin-top: 1.6rem;
+        }
+
         section[data-testid="stSidebar"] {
           background: #f3ede6;
           border-right: 1px solid var(--border);
@@ -886,6 +899,20 @@ def main():
                         "Dalies prekiu kiekis nepakeistas, nes manage_stock isjungta. "
                         f"WC_ID: {', '.join(str(i) for i in stock_manage_rows[:10])}"
                     )
+
+    with st.container():
+        st.markdown('<div class="wc-raw-marker"></div>', unsafe_allow_html=True)
+        st.markdown('<h4>WC RAW lentele</h4>', unsafe_allow_html=True)
+        st.markdown(
+            "<p>Visi duomenys is WC, kaip buvo importuoti (json normalizuotas).</p>",
+            unsafe_allow_html=True,
+        )
+        raw_df = load_wc_raw_df(session)
+        if raw_df.empty:
+            st.info("WC RAW duomenu nera. Pirma importuok is WC API.")
+        else:
+            st.caption(f"RAW irasu: {len(raw_df)}")
+            st.dataframe(raw_df, use_container_width=True, height=420)
 
 if __name__ == "__main__":
     main()
