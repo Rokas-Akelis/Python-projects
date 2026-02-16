@@ -9,6 +9,7 @@ from models import get_default_db_path
 BASE_DIR = Path(__file__).parent
 DB_PATH = get_default_db_path()
 BACKUP_ROOT = BASE_DIR / "backup"
+LEGACY_BACKUP_ROOT = BASE_DIR / "backups"
 
 
 def get_db_path() -> Path:
@@ -42,8 +43,30 @@ def get_backup_dir(db_path: Path | None = None) -> Path:
 BACKUP_DIR = get_backup_dir()
 
 
+def _migrate_legacy_backups(target_dir: Path) -> None:
+    if LEGACY_BACKUP_ROOT == target_dir:
+        return
+    if not LEGACY_BACKUP_ROOT.exists():
+        return
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return
+
+    for item in LEGACY_BACKUP_ROOT.glob("inventory*.bak"):
+        try:
+            dest = target_dir / item.name
+            if dest.exists():
+                timestamp = time.strftime("%Y%m%d-%H%M%S")
+                dest = target_dir / f"{item.stem}-migrated-{timestamp}{item.suffix}"
+            shutil.move(str(item), str(dest))
+        except Exception:
+            continue
+
+
 def ensure_backup_dir(db_path: Path | None = None) -> Path:
     backup_dir = get_backup_dir(db_path)
+    _migrate_legacy_backups(backup_dir)
     backup_dir.mkdir(parents=True, exist_ok=True)
     return backup_dir
 
@@ -75,6 +98,7 @@ def create_backup(label: str = "", db_path: Path | None = None, backup_dir: Path
 
 def list_backups(db_path: Path | None = None) -> list[Path]:
     backup_dir = get_backup_dir(db_path)
+    _migrate_legacy_backups(backup_dir)
     if not backup_dir.exists():
         return []
     return sorted(

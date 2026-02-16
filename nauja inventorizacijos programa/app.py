@@ -702,6 +702,11 @@ def main():
                         st.error(f"Nepavyko atkurti backup: {e}")
 
     st.markdown('<div class="lux-card">', unsafe_allow_html=True)
+    search_query = st.text_input(
+        "Paieska (WC ID arba pavadinimas)",
+        key="wc_search_query",
+        placeholder="Ivesk WC ID arba pavadinima",
+    )
     st.markdown('<h4>WC lauku redagavimas</h4>', unsafe_allow_html=True)
     st.markdown(
         '<p>Tuscios reiksmes = nekeisti. "price" yra tik perziurai.</p>',
@@ -743,10 +748,23 @@ def main():
         if "price" in edit_df.columns:
             column_config["price"] = st.column_config.NumberColumn("Kaina (read-only)", format="%.2f")
 
-        disabled_cols = [col for col in edit_df.columns if col not in editable_keys]
+        filtered_df = edit_df
+        query = (search_query or "").strip()
+        if query:
+            mask = None
+            if "wc_id" in edit_df.columns:
+                mask = edit_df["wc_id"].astype(str).str.contains(query, case=False, na=False)
+            if "name" in edit_df.columns:
+                name_mask = edit_df["name"].astype(str).str.contains(query, case=False, na=False)
+                mask = name_mask if mask is None else (mask | name_mask)
+            if mask is not None:
+                filtered_df = edit_df[mask]
+            st.caption(f"Rodoma: {len(filtered_df)} / {len(edit_df)}")
+
+        disabled_cols = [col for col in filtered_df.columns if col not in editable_keys]
 
         edited_raw = st.data_editor(
-            edit_df,
+            filtered_df,
             num_rows="fixed",
             hide_index=True,
             disabled=disabled_cols,
