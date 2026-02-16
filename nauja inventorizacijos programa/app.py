@@ -101,6 +101,22 @@ def load_wc_raw_df(session):
                 if is_scalar_safe(v) and pd.isna(v)
                 else json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else str(v)
             )
+
+    def _coerce_mixed_types(series: pd.Series) -> pd.Series:
+        non_null = series.dropna()
+        if non_null.empty:
+            return series
+        has_str = non_null.map(lambda v: isinstance(v, str)).any()
+        has_num = non_null.map(
+            lambda v: isinstance(v, (int, float, bool, np.integer, np.floating, np.bool_))
+        ).any()
+        if has_str and has_num:
+            return series.map(lambda v: None if pd.isna(v) else str(v))
+        return series
+
+    for col in df.columns:
+        if df[col].dtype == "object":
+            df[col] = _coerce_mixed_types(df[col])
     return df
 
 
@@ -932,7 +948,7 @@ def main():
             st.info("WC RAW duomenu nera. Pirma importuok is WC API.")
         else:
             st.caption(f"RAW irasu: {len(raw_df)}")
-            st.dataframe(raw_df, use_container_width=True, height=420)
+            st.dataframe(raw_df, width="stretch", height=420)
 
 if __name__ == "__main__":
     main()
